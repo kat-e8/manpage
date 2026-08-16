@@ -1,0 +1,116 @@
+<title>git-mcp: katlegog verified</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.88rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  .status-open { color: var(--ink-soft); font-style: italic; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">final-run · 7</div>
+    <h1>git-mcp: katlegog verified</h1>
+    <p class="deck">The one open item left at the end of §07 of the previous doc: <code>windows_quote()</code> had been implemented and reasoned about, but never tested against a real adversarial input on a real <code>cmd.exe</code>. It now has been.</p>
+    <div class="meta">
+      <span>target: katlegog (Windows)</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>Why this was gated</h2></div>
+    <p>POSIX quoting (<code>shlex.quote</code>) had already been proven live against <code>katmint</code> -- a real malicious commit message and a real malicious branch name, both neutralized. <code>cmd.exe</code>'s quoting rules are a different, more error-prone grammar entirely -- notably, <code>%</code> triggers environment-variable expansion regardless of quoting, which no amount of clever escaping fully closes. The design plan called for treating this as unproven until it was actually tested that way, not just reasoned about -- so <code>katlegog</code> was left out of <code>GIT_MCP_TARGETS</code> entirely rather than shipped on faith.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>Proof: real cmd.exe metacharacters, live</h2></div>
+    <p>Bootstrapped a disposable scratch repo directly on katlegog (same recipe as the katmint tests, adapted for Windows path syntax), enabled the <code>katlegog</code> registry entry, recreated the container, then ran the legitimate case first, followed by three deliberate attacks:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Call</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td><code>git_status</code> against the real scratch repo</td><td class="status-yes">✓ correct output, first successful Windows-target call</td></tr>
+          <tr><td>Commit message: <code>& echo pwned | findstr x ^&^& echo more &lt; nul &gt; pwned3.txt (parens) !bang!</code></td><td class="status-yes">✓ stored as one inert literal commit subject -- confirmed via <code>git log --format=%s</code>; <code>pwned3.txt</code> never created, nothing executed</td></tr>
+          <tr><td>Commit message containing <code>%USERPROFILE%</code></td><td class="status-yes">✓ rejected outright by <code>windows_quote()</code>'s explicit <code>%</code> check -- "cmd.exe can expand as an environment variable reference regardless of quoting"</td></tr>
+          <tr><td>Branch name: <code>--upload-pack=calc.exe</code></td><td class="status-yes">✓ rejected by <code>validate_ref_name</code> before reaching the shell -- same OS-agnostic structural defense that caught the equivalent katmint attempt</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 150" role="img" aria-label="Diagram. A commit message containing ampersand, pipe, caret, redirection arrows, parentheses, and an exclamation mark was sent to the katlegog target. windows_quote wrapped it correctly for cmd.exe. The resulting commit shows the entire string as one literal commit subject, and no file named pwned3.txt was ever created on the filesystem, confirming no metacharacter was interpreted by the shell.">
+          <rect x="20" y="40" width="380" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="210" y="64" text-anchor="middle" font-size="9.5" font-family="var(--font-mono)">"...  &amp; echo pwned | ... &gt; pwned3.txt ..."</text>
+          <text x="210" y="84" text-anchor="middle" font-size="9" opacity="0.7">sent as git_commit's message argument</text>
+
+          <text x="440" y="80" text-anchor="middle" font-size="16" fill="var(--accent)">→</text>
+
+          <rect x="480" y="40" width="380" height="70" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="670" y="62" text-anchor="middle" font-size="10" fill="var(--accent)">one literal commit subject</text>
+          <text x="670" y="80" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">pwned3.txt: never created</text>
+          <text x="670" y="96" text-anchor="middle" font-size="8.5" fill="var(--accent)" opacity="0.8">verified via dir + git log --format=%s</text>
+        </svg>
+      </div>
+      <figcaption>Every payload character survived as data, none as control -- the specific property <code>windows_quote()</code> exists to guarantee.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Enabled</h2></div>
+    <p><code>katlegog</code> is now in <code>GIT_MCP_TARGETS</code> on clubuntu, alongside <code>clubuntu</code> and <code>katmint</code>. All three of git-mcp's registered targets have now had their quoting dialect proven against live adversarial input, not just code review.</p>
+    <div class="callout">This verification is specific to <em>this</em> Windows host's shell configuration. A future fourth target that's also Windows still needs the same live test repeated against it -- <code>windows_quote()</code> being correct in general isn't the claim; <code>windows_quote()</code> being correct <em>as actually exercised here</em> is.</div>
+  </section>
+
+  <footer>final-run — 7 · git-mcp: all three registered targets verified against live adversarial input</footer>
+</div>

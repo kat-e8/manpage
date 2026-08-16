@@ -209,7 +209,10 @@ docker compose down -v                    # stop and wipe the Postgres volume
   `reset --hard`, `clean -f`, rebase, and any other history-rewriting
   operation are excluded from the tool set by omission, not gated behind a
   runtime flag -- there is no way to make git-mcp perform one short of
-  redeploying it with new code. Windows-target (`katlegog`) support
-  specifically depends on `git_mcp/quoting.py`'s `windows_quote()` being
-  separately verified against real cmd.exe metacharacters before that
-  registry entry is enabled -- see `git-mcp/design-plan.pdf`.
+  redeploying it with new code. Output per stream (stdout/stderr) is capped
+  at 200KB, found necessary live against a real repo (`final-run/06`).
+  Windows-target support (`git_mcp/quoting.py`'s `windows_quote()`) was
+  verified against real cmd.exe metacharacters on `katlegog` on
+  2026-08-16 (`final-run/07`) before that registry entry was enabled --
+  any *additional* Windows target needs the same live verification
+  repeated against it specifically, not assumed from `katlegog`'s result.

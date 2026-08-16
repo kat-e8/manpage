@@ -17,7 +17,11 @@ including ones against the host git-mcp itself runs on, goes over SSH.
   bind-mounted into the container (see `docker-compose.yml`).
 - `GIT_MCP_TARGETS` — JSON registry: `{"alias": {"ssh": "user@host", "os":
   "posix"|"windows"}}`. `os` selects shell-quoting dialect for that target
-  — required for safe command construction, not just cosmetic.
+  — required for safe command construction, not just cosmetic. Don't add a
+  new `"windows"` entry without first verifying `quoting.py`'s
+  `windows_quote()` against real cmd.exe metacharacters on that specific
+  host (see `design-plan.pdf`'s "Staged rollout" and `final-run/07` for how
+  `katlegog` was verified before being enabled).
 
 ## Tool inventory
 

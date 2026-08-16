@@ -2,7 +2,7 @@
 
 from typing import Dict, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,7 +29,13 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    targets: Dict[str, TargetSpec] = {}
+    # pydantic-settings maps a bare field name to the identically-named env
+    # var (case-insensitive) by default -- "targets" alone would look for
+    # TARGETS, not GIT_MCP_TARGETS. This alias is required, not cosmetic;
+    # without it the registry silently loads empty and every tool call
+    # fails closed with "Unknown target" (safe failure mode, but not the
+    # intended one).
+    targets: Dict[str, TargetSpec] = Field(default_factory=dict, validation_alias="GIT_MCP_TARGETS")
 
     server_host: str = "0.0.0.0"
     server_port: int = 8010

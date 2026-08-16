@@ -1,0 +1,122 @@
+name: codercommands
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: codercommands-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    # Intentionally not published to the host: this machine already runs an
+    # unrelated Postgres container on the default 5432, and nothing outside
+    # this compose network needs to reach this one directly.
+    networks: [codercommands]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  sync:
+    build: ./sync
+    container_name: codercommands-sync
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      XLSX_PATH: /data/coder_commands.xlsx
+      SYNC_POLL_SECONDS: ${SYNC_POLL_SECONDS}
+    volumes:
+      - ${XLSX_HOST_PATH}:/data/coder_commands.xlsx:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [codercommands]
+    restart: unless-stopped
+
+  coder-commands-mcp:
+    # The coder-commands lookup server specifically (search_commands,
+    # list_topics, browse_<topic>) -- named for what it actually is, not
+    # "mcp-server" as if it were the only or generic one. gateway (below)
+    # is the generic part; this is one of the servers it mounts.
+    build: ./coder-commands-mcp
+    container_name: coder-commands-mcp
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [codercommands]
+    restart: unless-stopped
+
+  docker-mcp:
+    # Own copy of the QuantGeekDev/docker-mcp fork, duplicated from
+    # backend/docker-mcp/docker-mcp so this project has no build-time
+    # dependency on backend/. The two copies are independent from here --
+    # changes to one do not propagate to the other.
+    build: ./docker-mcp
+    container_name: codercommands-docker-mcp
+    volumes:
+      # Docker-outside-of-Docker: this container has no daemon of its own --
+      # it drives the *host's* Docker daemon via the CLI baked into the image
+      # (see its Dockerfile), so the host socket must be bind-mounted in.
+      # Whatever this MCP server does (create/stop containers, run compose)
+      # happens directly on the host, same blast radius as running `docker`
+      # in a host shell -- not sandboxed by being containerized.
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [codercommands]
+    restart: unless-stopped
+
+  postgres-mcp:
+    # Own custom FastMCP server (src/postgres_mcp/), not the third-party
+    # crystaldba/postgres-mcp image the ../POSTGRES project runs -- this one
+    # supports a per-call connection_uri override (see tools/_scope.py) and
+    # defaults to this project's own `postgres` service, so there's no
+    # runtime dependency on ../POSTGRES either. container_name is prefixed
+    # (unlike the compose service name) only to avoid colliding on the
+    # Docker host with ../POSTGRES's own container also named postgres-mcp.
+    build: ./postgres-mcp
+    container_name: codercommands-postgres-mcp
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [codercommands]
+    restart: unless-stopped
+
+  gateway:
+    # Generic MCP gateway -- not coder-commands-specific. Mounts whatever
+    # upstream MCP servers this project has (currently coder-commands-mcp,
+    # docker-mcp, postgres-mcp); adding a new one later is a new upstream
+    # env var, proxy route, and depends_on entry, nothing about this
+    # service's own identity.
+    build: ./api
+    container_name: generic-mcp-gateway
+    environment:
+      CODER_COMMANDS_MCP_UPSTREAM_URL: http://coder-commands-mcp:9000
+      POSTGRES_MCP_UPSTREAM_URL: http://postgres-mcp:8000
+      DOCKER_MCP_UPSTREAM_URL: http://docker-mcp:8008
+    ports:
+      - "${GATEWAY_HOST_PORT}:8100"
+    depends_on:
+      - coder-commands-mcp
+      - docker-mcp
+      - postgres-mcp
+    networks: [codercommands]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8100/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  codercommands:
+    name: codercommands-net
+
+volumes:
+  pgdata:
+    name: codercommands-pgdata

@@ -157,5 +157,48 @@
     </ul>
   </section>
 
-  <footer>git-docs — 11 · tag: v0.1.0-rollback → 811af77</footer>
+  <section class="wide">
+    <div class="section-head"><span class="section-num">07</span><h2>Cleanup exposed a gap — tags aren't state</h2></div>
+    <p><code>v0.1.0-rollback</code> was only ever meant as a test, so it was deleted once confirmed: <code>git tag -d</code> locally, <code>git push origin --delete</code> remotely. Deleting a tag fires no workflow — only pushing one does — so clubuntu kept running exactly what it was running before the delete: <code>811af77</code>. But the only tag left, <code>v0.1.0</code>, pointed at <code>9992ba4</code>. The label and the deployed reality had quietly drifted apart, and nothing about deleting a tag would ever fix that on its own.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 190" role="img" aria-label="Deleting the rollback tag removes a label but triggers no workflow, so clubuntu keeps running the older image. The one remaining tag, v0.1.0, still points at the newer commit -- a real mismatch between what the tag says and what's actually deployed, until something is redeployed to close the gap.">
+          <rect x="30" y="30" width="380" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="55" text-anchor="middle" font-size="10.5">git tag -d / push --delete</text>
+          <text x="220" y="75" text-anchor="middle" font-size="9.5" opacity="0.75">no push event → deploy.yml never fires</text>
+
+          <rect x="470" y="30" width="380" height="70" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="55" text-anchor="middle" font-size="10.5" fill="var(--accent)">clubuntu unchanged</text>
+          <text x="660" y="75" text-anchor="middle" font-size="9.5" fill="var(--accent)">still running 811af77</text>
+
+          <text x="440" y="135" text-anchor="middle" font-size="10">v0.1.0 (the only tag left) says 9992ba4 —</text>
+          <text x="440" y="155" text-anchor="middle" font-size="10" fill="var(--accent)">label and reality now disagree, until something redeploys</text>
+        </svg>
+      </div>
+      <figcaption>A tag is a pointer, nothing more — deleting one is a git-history edit, not an instruction to any running system.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">08</span><h2>Re-pushing an unchanged tag does nothing — why, and the fix</h2></div>
+    <p>The instinct is <code>git push origin v0.1.0</code> again. That does nothing: the ref on GitHub already points at <code>9992ba4</code>, so there's no actual change to push — Git reports "Everything up-to-date," and no push event fires for GitHub to dispatch a job from. Resyncing needed a genuinely new tag-push event: delete <code>v0.1.0</code>, recreate it pointing at the exact same commit, push it fresh.</p>
+    <div class="callout">git tag -d v0.1.0<br>git push origin --delete v0.1.0<br>git tag v0.1.0 9992ba4<br>git push origin v0.1.0 <span class="added"># a genuinely new ref creation — this one does dispatch</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Container</th><th>Before redeploy</th><th>After redeploy</th></tr></thead>
+        <tbody>
+          <tr><td>generic-mcp-gateway</td><td><code>gateway:811af77</code></td><td class="status-yes"><code>gateway:9992ba4</code></td></tr>
+          <tr><td>coder-commands-mcp</td><td><code>...:811af77</code></td><td class="status-yes"><code>...:9992ba4</code></td></tr>
+          <tr><td>codercommands-docker-mcp</td><td><code>docker-mcp:811af77</code></td><td class="status-yes"><code>docker-mcp:9992ba4</code></td></tr>
+          <tr><td>codercommands-postgres-mcp</td><td><code>...:811af77</code></td><td class="status-yes"><code>...:9992ba4</code></td></tr>
+          <tr><td>codercommands-sync</td><td><code>sync:811af77</code></td><td class="status-yes"><code>sync:9992ba4</code></td></tr>
+          <tr><td>codercommands-postgres</td><td colspan="2">unaffected both times — 11+ minutes uptime throughout</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">$ curl http://localhost:8100/healthz<br>{"status":"ok"}</div>
+    <p>Label and reality back in agreement — <code>v0.1.0</code> says <code>9992ba4</code>, clubuntu runs <code>9992ba4</code>.</p>
+  </section>
+
+  <footer>git-docs — 11 · tag: v0.1.0-rollback → 811af77 · resynced to v0.1.0 → 9992ba4</footer>
 </div>

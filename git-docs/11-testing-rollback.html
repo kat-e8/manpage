@@ -1,0 +1,161 @@
+<title>Testing Rollback</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.85rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  ul.punchlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+  svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-docs · 11</div>
+    <h1>Testing Rollback</h1>
+    <p class="deck">A tag pointed at an older commit, pushed once — and the running stack genuinely went backward, with no rebuild and no manual intervention.</p>
+    <div class="meta">
+      <span>tag: v0.1.0-rollback → commit 811af77</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>What rollback actually is</h2></div>
+    <p>Not a feature. Not a separate code path. <code>deploy.yml</code> has exactly one job, and it has no idea whether a given tag is a "release" or a "rollback" — that distinction exists only in the human's head, in which commit they chose to point the tag at. A rollback tag pointed backward runs through the identical resolve → pull → up sequence as any other deploy. The only reason this works without rebuilding anything is doc 3's design choice from the very start of the day: every push builds and tags by commit SHA, whether or not that commit ever becomes a release — so an old SHA's images are usually still sitting in the registry, untouched, whenever you need them again.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>What was actually tested</h2></div>
+    <p>Currently deployed: <code>v0.1.0</code>, resolving to commit <code>9992ba4</code>. Rollback target chosen deliberately: <code>811af77</code> — doc 9's confirmed fully-successful build, where all five images actually finished pushing (unlike <code>60bac55</code>, where only one image was ever manually pushed as a diagnostic, not the full set). Real rollback needs a real, complete prior version to land on.</p>
+    <div class="callout">git tag v0.1.0-rollback 811af77<br>git push origin v0.1.0-rollback</div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Which components are involved</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>Role in a rollback</th></tr></thead>
+        <tbody>
+          <tr><td>GitHub (router + controller)</td><td>Matches the tag push, resolves <code>deploy.yml</code> into a job — no awareness this is "a rollback"</td></tr>
+          <tr><td>Runner, on clubuntu</td><td>Picks up the job, resolves the tag to a commit SHA, sets <code>IMAGE_TAG</code></td></tr>
+          <tr><td>Registry</td><td>Already holds the old SHA's images from when they were originally built — only ever <em>read</em> here, never written to</td></tr>
+          <tr><td>Docker Compose</td><td>Diffs the new image references against what's running; recreates only the containers whose image actually changed</td></tr>
+          <tr><td>Build pipeline</td><td>Not involved at all — this is the whole point</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>What actually changed, container by container</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Container</th><th>Before</th><th>After</th><th>Recreated?</th></tr></thead>
+        <tbody>
+          <tr><td>generic-mcp-gateway</td><td><code>gateway:9992ba4</code></td><td><code>gateway:811af77</code></td><td class="status-yes">Yes</td></tr>
+          <tr><td>coder-commands-mcp</td><td><code>...:9992ba4</code></td><td><code>...:811af77</code></td><td class="status-yes">Yes</td></tr>
+          <tr><td>codercommands-docker-mcp</td><td><code>docker-mcp:9992ba4</code></td><td><code>docker-mcp:811af77</code></td><td class="status-yes">Yes</td></tr>
+          <tr><td>codercommands-postgres-mcp</td><td><code>...:9992ba4</code></td><td><code>...:811af77</code></td><td class="status-yes">Yes</td></tr>
+          <tr><td>codercommands-sync</td><td><code>sync:9992ba4</code></td><td><code>sync:811af77</code></td><td class="status-yes">Yes</td></tr>
+          <tr><td>codercommands-postgres</td><td><code>postgres:17</code></td><td><code>postgres:17</code></td><td>No — image never changed</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p><code>postgres</code> staying untouched (still showing its original uptime, not recreated) is Compose's own diffing at work, not a special case written for this project — it only restarts what actually needs restarting.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>The mechanism</h2></div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 210" role="img" aria-label="A release tag and a rollback tag both dispatch the identical deploy workflow. The only difference is which commit the tag happens to point at. Because that commit's images were already built when it was originally pushed, the rollback path pulls instead of rebuilding, landing on the exact same running state as it was the first time.">
+          <defs>
+            <marker id="rb2-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="60" y="20" width="260" height="55" rx="6" fill="none" stroke="currentColor" />
+          <text x="190" y="43" text-anchor="middle" font-size="10.5">v0.1.0 → 9992ba4</text>
+          <text x="190" y="60" text-anchor="middle" font-size="9" opacity="0.7">newest commit</text>
+
+          <rect x="580" y="20" width="260" height="55" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="710" y="43" text-anchor="middle" font-size="10.5" fill="var(--accent)">v0.1.0-rollback → 811af77</text>
+          <text x="710" y="60" text-anchor="middle" font-size="9" fill="var(--accent)">older commit — tested here</text>
+
+          <line x1="190" y1="75" x2="400" y2="110" stroke="currentColor" marker-end="url(#rb2-arrow)" />
+          <line x1="710" y1="75" x2="500" y2="110" stroke="var(--accent)" marker-end="url(#rb2-arrow)" />
+
+          <rect x="330" y="110" width="240" height="50" rx="6" fill="none" stroke="currentColor" />
+          <text x="450" y="140" text-anchor="middle" font-size="10.5">identical deploy.yml — no branching</text>
+
+          <line x1="450" y1="160" x2="450" y2="185" stroke="currentColor" marker-end="url(#rb2-arrow)" />
+          <text x="450" y="205" text-anchor="middle" font-size="9.5" opacity="0.75">only "pull" differs in outcome — same steps, images already exist either way</text>
+        </svg>
+      </div>
+      <figcaption>Same picture as doc 4's original plan, and the FAQ's answer to "what happens during a rollback tag" — now backed by two real, confirmed deploys instead of description alone.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>Verified</h2></div>
+    <div class="callout">$ curl http://clubuntu.dala-cirius.ts.net:8100/healthz<br>{"status":"ok"}</div>
+    <p>Reached directly over Tailscale from the dev laptop this time, not just from inside clubuntu — confirming the gateway is genuinely reachable across the tailnet on its published port, not only reachable locally.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="section-num">06</span><h2>What this proves</h2></div>
+    <ul class="punchlist">
+      <li>Rollback cost one pull of already-built images — no rebuild, no wait for a fresh <code>docker buildx bake</code></li>
+      <li>Compose only recreated the five containers whose image reference actually changed, left <code>postgres</code> running untouched</li>
+      <li>The exact same <code>deploy.yml</code>, unmodified, correctly served both a forward release and a backward rollback — because it was never told the difference</li>
+    </ul>
+  </section>
+
+  <footer>git-docs — 11 · tag: v0.1.0-rollback → 811af77</footer>
+</div>

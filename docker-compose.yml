@@ -11,9 +11,15 @@ services:
     volumes:
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
       - pgdata:/var/lib/postgresql/data
-    # Intentionally not published to the host: this machine already runs an
-    # unrelated Postgres container on the default 5432, and nothing outside
-    # this compose network needs to reach this one directly.
+    # Published so a remote postgres-mcp (e.g. the one on clubuntu) can reach
+    # this laptop's own postgres via a per-call connection_uri override. Not
+    # on 5432 -- that's already taken locally by the unrelated ../POSTGRES
+    # project's own container. POSTGRES_TAILNET_BIND defaults to loopback-only
+    # so this stays closed unless a real Tailscale IP is set in .env -- never
+    # bind 0.0.0.0 here, that would expose it to the whole LAN, not just the
+    # tailnet.
+    ports:
+      - "${POSTGRES_TAILNET_BIND:-127.0.0.1}:${POSTGRES_HOST_PORT:-5433}:5432"
     networks: [codercommands]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]

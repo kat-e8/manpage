@@ -1,0 +1,213 @@
+<title>Reaching Clubuntu</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.9rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+  svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-docs · 6 — execution log</div>
+    <h1>Reaching Clubuntu</h1>
+    <p class="deck">Four separate obstacles stood between "I need to copy two files to clubuntu" and it actually happening. None were about the files.</p>
+    <div class="meta">
+      <span>host: clubuntu.dala-cirius.ts.net</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-head"><span class="section-num">01</span><h2>The goal</h2></div>
+    <p>Place <code>db/schema.sql</code> and <code>coder_commands.xlsx</code> at <code>/opt/docker/manpage</code> on clubuntu — the deploy compose file needs both there before its first run. Getting there required fixing SSH access, then fixing filesystem permissions, as two separate problems.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Obstacle 1 — no key authorized yet</h2></div>
+    <p>SSH login by key works by proving possession of a private key without ever transmitting it. The public half has to be listed in the target account's <code>authorized_keys</code> first — it wasn't, so every connection attempt failed before anything else could happen.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 260" role="img" aria-label="Sequence: the laptop presents its public key, clubuntu checks whether that key is listed in authorized_keys, issues a challenge, the laptop signs it with the private key which never leaves the laptop, clubuntu verifies the signature against the stored public key, and grants access.">
+          <defs>
+            <marker id="rc-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+            <marker id="rc-arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)" />
+            </marker>
+          </defs>
+          <rect x="30" y="15" width="220" height="40" rx="4" fill="none" stroke="currentColor" />
+          <text x="140" y="40" text-anchor="middle" font-size="11">Dev laptop (private key)</text>
+          <rect x="650" y="15" width="220" height="40" rx="4" fill="none" stroke="currentColor" />
+          <text x="760" y="40" text-anchor="middle" font-size="11">clubuntu (public key on file)</text>
+          <line x1="140" y1="55" x2="140" y2="230" stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="3 3" />
+          <line x1="760" y1="55" x2="760" y2="230" stroke="currentColor" stroke-opacity="0.35" stroke-dasharray="3 3" />
+
+          <line x1="140" y1="90" x2="760" y2="90" stroke="currentColor" marker-end="url(#rc-arrow)" />
+          <text x="450" y="80" text-anchor="middle" font-size="10">① "I'm katlego, here's my public key"</text>
+
+          <text x="450" y="112" text-anchor="middle" font-size="9.5" opacity="0.7">② is this key in ~/.ssh/authorized_keys?</text>
+
+          <line x1="760" y1="130" x2="140" y2="130" stroke="currentColor" marker-end="url(#rc-arrow)" />
+          <text x="450" y="122" text-anchor="middle" font-size="10">③ "prove it — sign this challenge"</text>
+
+          <text x="140" y="155" text-anchor="middle" font-size="9.5" fill="var(--accent)">④ signs with private key — key itself never sent</text>
+
+          <line x1="140" y1="175" x2="760" y2="175" stroke="var(--accent)" marker-end="url(#rc-arrow-accent)" />
+          <text x="450" y="167" text-anchor="middle" font-size="10" fill="var(--accent)">⑤ signed response</text>
+
+          <text x="450" y="197" text-anchor="middle" font-size="9.5" opacity="0.7">⑥ verify signature against stored public key</text>
+
+          <line x1="760" y1="215" x2="140" y2="215" stroke="currentColor" marker-end="url(#rc-arrow)" />
+          <text x="450" y="207" text-anchor="middle" font-size="10">⑦ access granted</text>
+        </svg>
+      </div>
+      <figcaption>Fix: appended the laptop's public key to <code>katlego</code>'s <code>authorized_keys</code> on clubuntu. This grants a new way to authenticate as an account that already existed — it creates nothing, permissions nothing on its own.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>Obstacles 2 &amp; 3 — no real terminal, then a key too long to type</h2></div>
+    <ul class="notelist">
+      <li><strong>Password auth failed silently.</strong> No visible prompt, immediate rejection — not a wrong password, but this tool's command relay not providing SSH a real interactive terminal to prompt into at all.</li>
+      <li><strong>The existing key was impractical to hand-type.</strong> A 4096-bit RSA public key runs to ~3000 characters — the target session could be typed into but not pasted into (<code>Ctrl+V</code> and right-click both failed there).</li>
+      <li><strong>Fix, two parts:</strong> generated a dedicated ED25519 key just for this link — its public half is one short, typeable line — and found <code>Shift+Insert</code> worked as an alternate paste binding in that session anyway, making the whole block pasteable in one shot.</li>
+    </ul>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>Obstacle 4 — logged in, still blocked</h2></div>
+    <p>SSH decides <em>who</em> gets in. Once in, <em>what that user can touch</em> is a completely separate system — ordinary Unix ownership and permission bits, checked by the kernel on every file operation, with no awareness of how you authenticated.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 200" role="img" aria-label="Before: /opt/docker/manpage is owned by root, with only read and execute permission for anyone who isn't root, so katlego cannot write. After chown, ownership moves to katlego, who now has full read and write access.">
+          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">BEFORE — owned by root</text>
+          <rect x="40" y="45" width="360" height="90" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="72" text-anchor="middle" font-size="11" font-family="var(--font-mono)">drwxr-xr-x  root  root</text>
+          <text x="220" y="94" text-anchor="middle" font-size="9.5" opacity="0.75">katlego is "other" here — read + enter only</text>
+          <text x="220" y="112" text-anchor="middle" font-size="9.5" opacity="0.75">✗ write denied — mkdir, scp both fail</text>
+
+          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">AFTER — chown -R katlego:katlego</text>
+          <rect x="480" y="45" width="360" height="90" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="72" text-anchor="middle" font-size="11" font-family="var(--font-mono)" fill="var(--accent)">drwxr-xr-x  katlego  katlego</text>
+          <text x="660" y="94" text-anchor="middle" font-size="9.5" fill="var(--accent)">katlego is now the owner</text>
+          <text x="660" y="112" text-anchor="middle" font-size="9.5" fill="var(--accent)">✓ full read + write</text>
+
+          <text x="440" y="170" text-anchor="middle" font-size="9.5" opacity="0.7">same login, same key — only the filesystem grant changed</text>
+        </svg>
+      </div>
+      <figcaption><code>sudo chown -R katlego:katlego /opt/docker/manpage</code> — needed its own interactive password prompt (a third, separate check: is this user in the <code>sudo</code> group, and do they know their own password), same real-terminal requirement the SSH password attempt lacked here.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>The copy itself — scp is SSH, not a separate protocol</h2></div>
+    <p><code>scp</code> isn't a different tool bolted onto SSH — it's SSH's own file-transfer mode, reusing the exact same encrypted, authenticated connection from §02. No second login, no second key check: once the connection from §02 is open, the same channel just carries file bytes instead of (or alongside) a shell session.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 190" role="img" aria-label="The dev laptop reads the local file schema.sql and streams its bytes over the already-authenticated SSH connection to clubuntu, which writes them to the target path under /opt/docker/manpage/db. A checksum taken on both ends afterward confirms the bytes arrived unchanged.">
+          <rect x="30" y="40" width="260" height="80" rx="6" fill="none" stroke="currentColor" />
+          <text x="160" y="65" text-anchor="middle" font-size="11">Dev laptop</text>
+          <text x="160" y="85" text-anchor="middle" font-size="9.5" opacity="0.8" font-family="var(--font-mono)">db/schema.sql</text>
+          <text x="160" y="102" text-anchor="middle" font-size="9" opacity="0.65">read from local disk</text>
+
+          <line x1="290" y1="80" x2="590" y2="80" stroke="var(--accent)" />
+          <text x="440" y="68" text-anchor="middle" font-size="9.5" fill="var(--accent)">bytes stream over the SSH connection</text>
+          <text x="440" y="98" text-anchor="middle" font-size="9" opacity="0.7">already open + authenticated from §02 — encrypted in transit</text>
+
+          <rect x="590" y="40" width="260" height="80" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="720" y="65" text-anchor="middle" font-size="11" fill="var(--accent)">clubuntu</text>
+          <text x="720" y="85" text-anchor="middle" font-size="9.5" fill="var(--accent)" font-family="var(--font-mono)">/opt/docker/manpage/db/schema.sql</text>
+          <text x="720" y="102" text-anchor="middle" font-size="9" opacity="0.75">written to target path</text>
+
+          <text x="440" y="155" text-anchor="middle" font-size="9.5" opacity="0.7">afterward: sha256sum on both ends, compared — identical hashes confirm</text>
+          <text x="440" y="171" text-anchor="middle" font-size="9.5" opacity="0.7">every byte arrived exactly as sent, independent of trusting the transfer blindly</text>
+        </svg>
+      </div>
+      <figcaption>Two files, same mechanism: <code>db/schema.sql</code> to <code>/opt/docker/manpage/db/</code>, then <code>coder_commands.xlsx</code> to <code>/opt/docker/manpage/</code>. The checksum step isn't scp verifying itself — it's an independent check run separately on each side afterward.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">06</span><h2>Verified</h2></div>
+    <div class="callout">
+$ sha256sum db/schema.sql coder_commands.xlsx   (local)<br>
+1ad37a03...fea2271  db/schema.sql<br>
+9c341aa7...d90f15e  coder_commands.xlsx<br>
+<br>
+$ ssh clubuntu ... sha256sum ...   (remote)<br>
+1ad37a03...fea2271  /opt/docker/manpage/db/schema.sql<br>
+9c341aa7...d90f15e  /opt/docker/manpage/coder_commands.xlsx<br>
+<br>
+identical, both files
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="section-num">07</span><h2>Status of /opt/docker/manpage</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><code>db/schema.sql</code></td><td>✓ present, verified</td></tr>
+          <tr><td><code>coder_commands.xlsx</code></td><td>✓ present, verified</td></tr>
+          <tr><td>Directory ownership</td><td>✓ katlego:katlego</td></tr>
+          <tr><td><code>.env</code></td><td>still to create</td></tr>
+          <tr><td><code>docker-compose.deploy.yml</code></td><td>not yet — first deploy run copies it in automatically</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>git-docs — 6 · host: clubuntu.dala-cirius.ts.net</footer>
+</div>

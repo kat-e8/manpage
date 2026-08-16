@@ -1,0 +1,214 @@
+<title>Unrelated Histories</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 42px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.5; }
+  ul.punchlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.95rem; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+  svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-docs · 1</div>
+    <h1>Unrelated Histories</h1>
+    <p class="deck">Why the first push to a brand-new GitHub repo failed in both directions, how it was fixed, and how to not hit it again.</p>
+    <div class="meta">
+      <span>repo: kat-e8/manpage</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-head"><span class="section-num">01</span><h2>What happened</h2></div>
+    <p>A local repo was initialized (<code>git init</code>, add, commit) independently of GitHub. Separately, the GitHub repo was created and a file was committed to it directly through the web UI, before the local repo ever pushed. By the time <code>git push</code> ran, both sides already had their own, separate commit — and neither push nor pull could reconcile them.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Two root commits, not one history</h2></div>
+    <p>A git commit's identity includes its parent. Two commits made independently — even with identical content — are different objects with no ancestor relationship unless one was built from the other. Here, both sides had a genuinely different root: local's own <code>git init</code> commit, and GitHub's auto-created one.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 280" role="img" aria-label="Local main has a single root commit, 3a3156e. Origin main has a different root commit, 414ae68, followed by a second commit ee45929 made through GitHub's web UI. The two chains share no common ancestor. A push attempt and a pull attempt both fail between them.">
+          <defs>
+            <marker id="uh-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <text x="140" y="100" text-anchor="middle" font-size="10.5" opacity="0.75">local main</text>
+          <rect x="40" y="115" width="200" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="140" y="145" text-anchor="middle" font-size="11" font-family="var(--font-mono)">3a3156e</text>
+          <text x="140" y="163" text-anchor="middle" font-size="9.5" opacity="0.8">initial commit</text>
+          <text x="140" y="178" text-anchor="middle" font-size="9" opacity="0.65">(own root — git init)</text>
+
+          <text x="760" y="45" text-anchor="middle" font-size="10.5" opacity="0.75">origin/main</text>
+          <rect x="660" y="60" width="200" height="55" rx="6" fill="none" stroke="currentColor" />
+          <text x="760" y="84" text-anchor="middle" font-size="11" font-family="var(--font-mono)">414ae68</text>
+          <text x="760" y="101" text-anchor="middle" font-size="9" opacity="0.65">Initial commit (GitHub-created)</text>
+
+          <line x1="760" y1="115" x2="760" y2="150" stroke="currentColor" marker-end="url(#uh-arrow)" />
+
+          <rect x="660" y="150" width="200" height="75" rx="6" fill="none" stroke="currentColor" />
+          <text x="760" y="178" text-anchor="middle" font-size="11" font-family="var(--font-mono)">ee45929</text>
+          <text x="760" y="196" text-anchor="middle" font-size="9.5" opacity="0.8">Initial README.md</text>
+          <text x="760" y="211" text-anchor="middle" font-size="9" opacity="0.65">(committed via web UI)</text>
+
+          <line x1="240" y1="128" x2="655" y2="98" stroke="currentColor" stroke-dasharray="4 3" />
+          <text x="330" y="112" font-size="10">✗ push</text>
+          <text x="450" y="128" text-anchor="middle" font-size="9" opacity="0.75">rejected — non-fast-forward</text>
+
+          <line x1="655" y1="185" x2="240" y2="170" stroke="currentColor" stroke-dasharray="4 3" />
+          <text x="330" y="200" font-size="10">✗ pull</text>
+          <text x="470" y="200" text-anchor="middle" font-size="9" opacity="0.75">refused — unrelated histories</text>
+        </svg>
+      </div>
+      <figcaption>Both errors are the same underlying fact, seen from opposite directions: git has no way to know these two chains are meant to be the same project, so it refuses to guess.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>Diagnosis, as it actually ran</h2></div>
+    <div class="code-panel">
+      <div class="code-panel-label">the tell</div>
+      <pre>$ git merge-base --is-ancestor origin/main HEAD
+$ echo $?
+1                                    # NO — confirmed divergence, not just "behind"
+
+$ git log --oneline main             # local's own line
+3a3156e initial commit
+
+$ git log --oneline origin/main      # remote's own line
+ee45929 Initial README.md with project details
+414ae68 Initial commit</pre>
+    </div>
+    <p>Two different root hashes on each branch's own line is the confirming signal — not "remote is ahead," but "remote was never derived from local at all."</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>The fix — force push, discarding the remote's commits</h2></div>
+    <p>The remote's only content was a throwaway auto-created README — nothing worth preserving as separate history, and nobody else had pulled from it yet. Given that, the clean resolution was to make <code>origin/main</code> simply point at local's history instead, discarding <code>414ae68</code> and <code>ee45929</code> outright.</p>
+    <div class="code-panel">
+      <pre>git push --force origin main</pre>
+    </div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 220" role="img" aria-label="Before: origin/main points at ee45929, local main points at 3a3156e, unrelated. After a force push, origin/main is moved to point directly at 3a3156e. The old commits 414ae68 and ee45929 are left with no ref pointing at them at all.">
+          <defs>
+            <marker id="ff-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)" />
+            </marker>
+          </defs>
+          <text x="150" y="25" text-anchor="middle" font-size="11" letter-spacing="1" opacity="0.7">BEFORE</text>
+          <rect x="60" y="45" width="180" height="50" rx="6" fill="none" stroke="currentColor" />
+          <text x="150" y="75" text-anchor="middle" font-size="10.5" font-family="var(--font-mono)">3a3156e — local main</text>
+          <rect x="60" y="120" width="180" height="50" rx="6" fill="none" stroke="currentColor" />
+          <text x="150" y="150" text-anchor="middle" font-size="10.5" font-family="var(--font-mono)">ee45929 — origin/main</text>
+
+          <text x="750" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">AFTER</text>
+          <rect x="660" y="45" width="220" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="770" y="75" text-anchor="middle" font-size="10.5" font-family="var(--font-mono)" fill="var(--accent)">3a3156e — local + origin/main</text>
+
+          <g opacity="0.4">
+            <rect x="660" y="130" width="220" height="60" rx="6" fill="none" stroke="currentColor" stroke-dasharray="3 3" />
+            <text x="770" y="155" text-anchor="middle" font-size="10" font-family="var(--font-mono)">414ae68, ee45929</text>
+            <text x="770" y="172" text-anchor="middle" font-size="9">orphaned — no ref points here</text>
+          </g>
+
+          <line x1="270" y1="70" x2="655" y2="70" stroke="var(--accent)" marker-end="url(#ff-arrow)" />
+          <text x="460" y="58" text-anchor="middle" font-size="9.5" fill="var(--accent)">origin/main reassigned</text>
+        </svg>
+      </div>
+      <figcaption>Nothing was merged — <code>origin/main</code> simply now points where local always pointed. The discarded commits still exist in GitHub's object store for a while, unreferenced, until garbage collection eventually clears them.</figcaption>
+    </figure>
+    <div class="callout">Verified after: <code>git fetch origin</code> then <code>git merge-base --is-ancestor origin/main HEAD</code> returned true — single lineage confirmed, both branches at <code>3a3156e</code>.</div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>How to avoid this next time</h2></div>
+    <p>The root cause was ordering: GitHub's repo already had a commit before the first push ever happened. Prevent that, and this can't recur.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 820 260" role="img" aria-label="When creating a GitHub repo to receive an existing local project, create it completely empty with no README, gitignore, or license, so the first push is a plain fast-forward. If GitHub's auto-generated files are wanted, clone the new repo first and add the project files into that clone instead, so there is only ever one history from the start.">
+          <defs>
+            <marker id="av-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="300" y="15" width="220" height="50" rx="6" fill="none" stroke="currentColor" />
+          <text x="410" y="45" text-anchor="middle" font-size="10.5">creating a GitHub repo for</text>
+          <text x="410" y="60" text-anchor="middle" font-size="10.5">an existing local project</text>
+
+          <line x1="360" y1="65" x2="200" y2="105" stroke="currentColor" marker-end="url(#av-arrow)" />
+          <line x1="460" y1="65" x2="620" y2="105" stroke="currentColor" marker-end="url(#av-arrow)" />
+
+          <rect x="40" y="106" width="320" height="55" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="200" y="128" text-anchor="middle" font-size="10.5" fill="var(--accent)">create it fully empty</text>
+          <text x="200" y="145" text-anchor="middle" font-size="9.5" fill="var(--accent)">no README, .gitignore, or license</text>
+
+          <rect x="460" y="106" width="320" height="55" rx="6" fill="none" stroke="currentColor" />
+          <text x="620" y="128" text-anchor="middle" font-size="10.5">want GitHub's auto-files anyway?</text>
+          <text x="620" y="145" text-anchor="middle" font-size="9.5" opacity="0.8">clone it first, before adding your code</text>
+
+          <line x1="200" y1="161" x2="200" y2="190" stroke="var(--accent)" marker-end="url(#av-arrow)" />
+          <text x="200" y="210" text-anchor="middle" font-size="9.5" fill="var(--accent)">first push is a plain</text>
+          <text x="200" y="224" text-anchor="middle" font-size="9.5" fill="var(--accent)">fast-forward — no conflict ever</text>
+
+          <line x1="620" y1="161" x2="620" y2="190" stroke="currentColor" marker-end="url(#av-arrow)" />
+          <text x="620" y="210" text-anchor="middle" font-size="9.5">add project files into that clone,</text>
+          <text x="620" y="224" text-anchor="middle" font-size="9.5">commit + push from there instead</text>
+        </svg>
+      </div>
+      <figcaption>Either path guarantees one history from the very first commit. The failure mode only exists when two independent roots are created before they've ever been introduced to each other.</figcaption>
+    </figure>
+    <ul class="punchlist">
+      <li>If the remote ever does have commits you want to keep, <code>git pull origin main --allow-unrelated-histories</code> merges them properly instead of discarding — the option not used here, since this remote's content was disposable.</li>
+      <li>Force-pushing is safe only when nobody else has fetched the branch being overwritten. Once a second person or machine has pulled, a force push rewrites history out from under them.</li>
+    </ul>
+  </section>
+
+  <footer>git-docs — 1 · repo: kat-e8/manpage</footer>
+</div>

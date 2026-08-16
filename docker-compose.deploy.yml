@@ -78,8 +78,12 @@ services:
       CODER_COMMANDS_MCP_UPSTREAM_URL: http://coder-commands-mcp:9000
       POSTGRES_MCP_UPSTREAM_URL: http://postgres-mcp:8000
       DOCKER_MCP_UPSTREAM_URL: http://docker-mcp:8008
+      GATEWAY_API_KEY: ${GATEWAY_API_KEY}
     ports:
       - "${GATEWAY_HOST_PORT}:8100"
+    labels:
+      tsdproxy.enable: "true"
+      tsdproxy.ephemeral: "false"
     depends_on:
       - coder-commands-mcp
       - docker-mcp

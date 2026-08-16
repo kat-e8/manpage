@@ -193,11 +193,17 @@
           <tr><td>Manual push after the daemon fix</td><td class="status-yes">✓ succeeded — 12 layers, real digest, exit 0</td></tr>
           <tr><td>Registry catalog</td><td class="status-yes">✓ <code>postgres-mcp</code> now present</td></tr>
           <tr><td>Other containers on clubuntu</td><td class="status-yes">✓ all survived the restart</td></tr>
-          <tr><td>Full CI run, both bugs fixed together</td><td>pending — re-run of build #7's failed job</td></tr>
+          <tr><td>Full CI run, both bugs fixed together</td><td class="status-yes">✓ commit 811af77 — all five images built and pushed automatically, zero manual steps</td></tr>
         </tbody>
       </table>
     </div>
+    <div class="callout">
+$ curl registry catalog + tags, after the natural push to main for this doc's own commit:<br>
+sync, coder-commands-mcp, docker-mcp, gateway → 811af77<br>
+postgres-mcp → 811af77, 60bac55 <span class="added">(both tags coexist — the accumulation model working exactly as designed)</span>
+    </div>
+    <p>This is the build half of the pipeline fully proven: a plain <code>git push</code>, no human touching clubuntu at any point, five images built and in the registry. Deploy — the tag-triggered half — is next.</p>
   </section>
 
-  <footer>git-docs — 9 · run: build #7 — commit 60bac55</footer>
+  <footer>git-docs — 9 · run: build #7 (60bac55) → confirmed via 811af77</footer>
 </div>

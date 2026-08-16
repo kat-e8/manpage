@@ -1,0 +1,193 @@
+<title>How Deployment Works</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .tag-laptop, .tag-github, .tag-clubuntu { font-family: var(--font-mono); font-size: 0.7rem; padding: 1px 7px; border-radius: 3px; border: 1px solid var(--line); white-space: nowrap; }
+  .tag-clubuntu { color: var(--accent); border-color: var(--accent); }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+  svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-docs · 12 — final summary</div>
+    <h1>How Deployment Works</h1>
+    <p class="deck">The complete pipeline as it actually runs today — every action, in sequence, tagged to the one component that performs it.</p>
+    <div class="meta">
+      <span>laptop → GitHub (kat-e8/manpage) → clubuntu</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>The three components</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag-laptop">LAPTOP</span></td><td>Where code is written and every <code>git</code> command is typed. Nothing else.</td></tr>
+          <tr><td><span class="tag-github">GITHUB</span></td><td>Hosts the repo, matches events to workflows, resolves jobs, queues them. Never touches clubuntu directly — it dispatches by queue, not by connection.</td></tr>
+          <tr><td><span class="tag-clubuntu">CLUBUNTU</span></td><td>Runs the self-hosted runner, the private registry, and the deployed stack itself. Always reaches out to GitHub — GitHub never reaches in.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>Shipping a code change</h2></div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 260" role="img" aria-label="Laptop pushes to GitHub, which queues a build job. The runner on clubuntu claims it, checks out fresh, builds all five images tagged by commit SHA, and pushes them to the registry. Nothing running on clubuntu changes.">
+          <defs>
+            <marker id="hw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="20" y="15" width="160" height="40" rx="4" fill="none" stroke="currentColor" />
+          <text x="100" y="40" text-anchor="middle" font-size="11">LAPTOP</text>
+          <rect x="370" y="15" width="160" height="40" rx="4" fill="none" stroke="currentColor" />
+          <text x="450" y="40" text-anchor="middle" font-size="11">GITHUB</text>
+          <rect x="720" y="15" width="160" height="40" rx="4" fill="none" stroke="var(--accent)" />
+          <text x="800" y="40" text-anchor="middle" font-size="11" fill="var(--accent)">CLUBUNTU</text>
+
+          <line x1="100" y1="55" x2="100" y2="235" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3" />
+          <line x1="450" y1="55" x2="450" y2="235" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3" />
+          <line x1="800" y1="55" x2="800" y2="235" stroke="var(--accent)" stroke-opacity="0.4" stroke-dasharray="3 3" />
+
+          <line x1="100" y1="90" x2="450" y2="90" stroke="currentColor" marker-end="url(#hw-arrow)" />
+          <text x="275" y="80" text-anchor="middle" font-size="10">① commit + git push origin main</text>
+
+          <text x="450" y="120" text-anchor="middle" font-size="9.5" opacity="0.7">② matches build.yml, queues a job</text>
+
+          <line x1="450" y1="150" x2="800" y2="150" stroke="var(--accent)" stroke-dasharray="4 3" />
+          <text x="625" y="140" text-anchor="middle" font-size="9.5" fill="var(--accent)">③ runner polls, claims the job</text>
+
+          <rect x="700" y="165" width="200" height="55" rx="4" fill="none" stroke="var(--accent)" />
+          <text x="800" y="187" text-anchor="middle" font-size="10" fill="var(--accent)">④ checkout, build ×5, push</text>
+          <text x="800" y="204" text-anchor="middle" font-size="9" fill="var(--accent)">tagged by commit SHA</text>
+        </svg>
+      </div>
+      <figcaption>End state: five new images in the registry. Nothing running on clubuntu has changed yet.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Making a release</h2></div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 260" role="img" aria-label="Laptop tags and pushes a version. GitHub queues a deploy job. The runner claims it, resolves the tag to a commit, copies the deploy compose file into the persistent directory, pulls the already-built images, and runs up -d, bringing the stack live.">
+          <defs>
+            <marker id="hw2-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="20" y="15" width="160" height="40" rx="4" fill="none" stroke="currentColor" />
+          <text x="100" y="40" text-anchor="middle" font-size="11">LAPTOP</text>
+          <rect x="370" y="15" width="160" height="40" rx="4" fill="none" stroke="currentColor" />
+          <text x="450" y="40" text-anchor="middle" font-size="11">GITHUB</text>
+          <rect x="720" y="15" width="160" height="40" rx="4" fill="none" stroke="var(--accent)" />
+          <text x="800" y="40" text-anchor="middle" font-size="11" fill="var(--accent)">CLUBUNTU</text>
+
+          <line x1="100" y1="55" x2="100" y2="245" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3" />
+          <line x1="450" y1="55" x2="450" y2="245" stroke="currentColor" stroke-opacity="0.3" stroke-dasharray="3 3" />
+          <line x1="800" y1="55" x2="800" y2="245" stroke="var(--accent)" stroke-opacity="0.4" stroke-dasharray="3 3" />
+
+          <line x1="100" y1="85" x2="450" y2="85" stroke="currentColor" marker-end="url(#hw2-arrow)" />
+          <text x="275" y="75" text-anchor="middle" font-size="10">⑤ git tag vX.Y.Z + push</text>
+
+          <text x="450" y="112" text-anchor="middle" font-size="9.5" opacity="0.7">⑥ matches deploy.yml, queues a job</text>
+
+          <line x1="450" y1="138" x2="800" y2="138" stroke="var(--accent)" stroke-dasharray="4 3" />
+          <text x="625" y="128" text-anchor="middle" font-size="9.5" fill="var(--accent)">⑦ runner claims it</text>
+
+          <rect x="680" y="152" width="220" height="80" rx="4" fill="none" stroke="var(--accent)" />
+          <text x="790" y="172" text-anchor="middle" font-size="9.5" fill="var(--accent)">⑧ resolve tag→SHA, copy compose</text>
+          <text x="790" y="188" text-anchor="middle" font-size="9.5" fill="var(--accent)">file into /opt/docker/manpage</text>
+          <text x="790" y="204" text-anchor="middle" font-size="9.5" fill="var(--accent)">pull (no rebuild) + up -d</text>
+          <text x="790" y="220" text-anchor="middle" font-size="9" opacity="0.8">stack live</text>
+        </svg>
+      </div>
+      <figcaption>End state: the stack on clubuntu is running that exact commit, reachable at <code>clubuntu.dala-cirius.ts.net:8100</code>.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>Rolling back</h2></div>
+    <p>Identical to steps ⑤–⑧, with one substitution: step ⑤ becomes <code>git tag vX.Y.Z-rollback &lt;older-commit-sha&gt;</code> instead of the newest commit. Every step after that is the same code path, unaware it's "a rollback" — it costs one pull, never a rebuild, because that older SHA's images are still sitting in the registry from whenever they were originally built.</p>
+    <p>One exception learned the hard way: re-pushing an <em>already-existing, unchanged</em> tag triggers nothing — no ref change, no push event. Redeploying the same version again means deleting and recreating that tag first.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>What never crosses which boundary</h2></div>
+    <ul class="punchlist">
+      <li>The laptop's source tree never reaches clubuntu — only images, and only <code>docker-compose.deploy.yml</code>, freshly copied out of each disposable checkout.</li>
+      <li><code>.env</code>, <code>db/schema.sql</code>, <code>coder_commands.xlsx</code> live only on clubuntu, permanently — never in git, never rebuilt, never touched by either workflow.</li>
+      <li>clubuntu never receives an inbound connection from GitHub — the runner always polls outward, never the other way around.</li>
+    </ul>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>Command reference, by component</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Where</th><th>Command</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag-laptop">LAPTOP</span></td><td><code>git push origin main</code></td><td>Triggers a build — registry only, nothing deployed</td></tr>
+          <tr><td><span class="tag-laptop">LAPTOP</span></td><td><code>git tag vX.Y.Z && git push origin vX.Y.Z</code></td><td>Triggers a deploy — the stack actually updates</td></tr>
+          <tr><td><span class="tag-laptop">LAPTOP</span></td><td><code>git tag vX.Y.Z-rollback &lt;sha&gt; && git push origin vX.Y.Z-rollback</code></td><td>Same deploy path, pointed backward</td></tr>
+          <tr><td><span class="tag-clubuntu">CLUBUNTU</span></td><td><code>docker compose -f docker-compose.deploy.yml ps</code></td><td>What's actually running right now, and at which tag</td></tr>
+          <tr><td><span class="tag-clubuntu">CLUBUNTU</span></td><td><code>curl localhost:8100/healthz</code></td><td>Confirms the gateway is live</td></tr>
+          <tr><td><span class="tag-github">GITHUB</span></td><td>Actions tab</td><td>Every build/deploy run, logs for each step, pass or fail</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>git-docs — 12 · final summary · laptop → github (kat-e8/manpage) → clubuntu</footer>
+</div>

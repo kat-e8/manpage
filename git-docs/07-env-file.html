@@ -1,0 +1,160 @@
+<title>The .env File on Clubuntu</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.9rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+  svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-docs · 7 — execution log</div>
+    <h1>The .env File on Clubuntu</h1>
+    <p class="deck">The last piece <code>docker-compose.deploy.yml</code> needed. Generated and written in one step, entirely on clubuntu — the actual values never passed through this session, this laptop, or git at all.</p>
+    <div class="meta">
+      <span>file: /opt/docker/manpage/.env</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>Why it was necessary</h2></div>
+    <p>Every <code>${VAR}</code> in <code>docker-compose.deploy.yml</code> is a placeholder — Compose fills it in from environment variables, and <code>.env</code> in its working directory is where those come from automatically. Without one, every placeholder resolves to an empty string; <code>postgres</code> would start with no user, no password, no database name.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 190" role="img" aria-label="Without a .env file, docker-compose.deploy.yml's variable placeholders resolve to empty strings and postgres fails to start correctly. With .env present in the working directory, compose substitutes real values and the stack comes up correctly.">
+          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">WITHOUT .env</text>
+          <rect x="40" y="45" width="360" height="90" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="70" text-anchor="middle" font-size="10.5" font-family="var(--font-mono)">POSTGRES_USER: ${POSTGRES_USER}</text>
+          <text x="220" y="88" text-anchor="middle" font-size="9.5" opacity="0.75">resolves to an empty string</text>
+          <text x="220" y="108" text-anchor="middle" font-size="9.5" opacity="0.75">postgres fails to initialize correctly</text>
+
+          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">WITH .env present</text>
+          <rect x="480" y="45" width="360" height="90" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="70" text-anchor="middle" font-size="10.5" fill="var(--accent)" font-family="var(--font-mono)">POSTGRES_USER: codercommands</text>
+          <text x="660" y="88" text-anchor="middle" font-size="9.5" fill="var(--accent)">compose reads .env from its own</text>
+          <text x="660" y="105" text-anchor="middle" font-size="9.5" fill="var(--accent)">working directory automatically</text>
+        </svg>
+      </div>
+      <figcaption>Six variables needed it: <code>POSTGRES_USER</code>, <code>POSTGRES_PASSWORD</code>, <code>POSTGRES_DB</code>, <code>XLSX_HOST_PATH</code>, <code>SYNC_POLL_SECONDS</code>, <code>GATEWAY_HOST_PORT</code>.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>One value needed a real decision: GATEWAY_HOST_PORT</h2></div>
+    <p>Clubuntu already runs a dozen other projects under <code>/opt/docker/</code>, so the dev laptop's default port wasn't safe to assume free. Checked first:</p>
+    <div class="callout">$ ssh clubuntu ... "ss -tln"<br>
+:5000 in use — the private registry itself, expected<br>
+:8100 — not listed, free<br>
+→ GATEWAY_HOST_PORT=8100, same as dev, confirmed safe rather than assumed</div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>The password — generated, never transmitted</h2></div>
+    <p>Copying <code>schema.sql</code> and <code>coder_commands.xlsx</code> (doc 6) meant those bytes genuinely traveled over the network, just encrypted. A password is more sensitive still — the safest transfer is the one that never happens. <code>openssl rand</code> ran <em>on clubuntu itself</em>, inside the same SSH session, so the value was generated, used, and written to disk without ever existing on this laptop or crossing the network as a distinct step.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 190" role="img" aria-label="Compare two transfer patterns. Files like schema.sql are generated on the dev laptop and streamed to clubuntu over the encrypted SSH channel. The password is instead generated directly on clubuntu by openssl running there, written straight to disk, and never exists on the dev laptop or travels over the network at all.">
+          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">FILES (doc 6) — generated here, sent there</text>
+          <rect x="40" y="45" width="360" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="70" text-anchor="middle" font-size="10">Dev laptop → (encrypted transit) → clubuntu</text>
+          <text x="220" y="90" text-anchor="middle" font-size="9.5" opacity="0.75">bytes genuinely cross the network</text>
+
+          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">PASSWORD — never leaves clubuntu</text>
+          <rect x="480" y="45" width="360" height="70" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="70" text-anchor="middle" font-size="10" fill="var(--accent)">openssl rand, on clubuntu → .env, on clubuntu</text>
+          <text x="660" y="90" text-anchor="middle" font-size="9.5" fill="var(--accent)">nothing to intercept — it was never sent</text>
+
+          <text x="440" y="150" text-anchor="middle" font-size="9.5" opacity="0.7">the ssh session itself only carried the *script that generates the password*,</text>
+          <text x="440" y="166" text-anchor="middle" font-size="9.5" opacity="0.7">never the password value — that only ever existed on clubuntu's own disk</text>
+        </svg>
+      </div>
+      <figcaption>Also never echoed back to this session, this chat, or any log — verification below confirms the file exists and is correctly formed without ever printing its contents.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>Verified</h2></div>
+    <div class="callout">WROTE_ENV_OK<br>
+-rw------- 1 katlego katlego 418 Aug 16 12:40 /opt/docker/manpage/.env<br>
+<br>
+--- keys present (values withheld) ---<br>
+POSTGRES_USER=<br>
+POSTGRES_PASSWORD=<br>
+POSTGRES_DB=<br>
+XLSX_HOST_PATH=<br>
+SYNC_POLL_SECONDS=<br>
+GATEWAY_HOST_PORT=</div>
+    <p>Mode <code>600</code> — only <code>katlego</code> can read this file at all, not even other local accounts on clubuntu. All six expected keys present; values deliberately never printed, including here.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="section-num">05</span><h2>Status of /opt/docker/manpage</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><code>db/schema.sql</code></td><td class="status-yes">✓ present</td></tr>
+          <tr><td><code>coder_commands.xlsx</code></td><td class="status-yes">✓ present</td></tr>
+          <tr><td><code>.env</code></td><td class="status-yes">✓ present, mode 600</td></tr>
+          <tr><td>Directory ownership</td><td class="status-yes">✓ katlego:katlego</td></tr>
+          <tr><td><code>docker-compose.deploy.yml</code></td><td>not yet — first deploy run copies it in</td></tr>
+          <tr><td>Self-hosted runner</td><td>not yet registered</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>git-docs — 7 · host: clubuntu.dala-cirius.ts.net</footer>
+</div>

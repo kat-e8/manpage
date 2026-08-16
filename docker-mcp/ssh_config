@@ -1,0 +1,8 @@
+# Baked into the image (see Dockerfile). Applies to every ssh:// docker_host
+# override -- the private key and known_hosts themselves are bind-mounted in
+# at runtime by docker-compose.yml (host secrets, not shipped in the image).
+Host *
+    IdentityFile /root/.ssh/id_ed25519_docker_mcp
+    IdentitiesOnly yes
+    UserKnownHostsFile /root/.ssh/known_hosts
+    StrictHostKeyChecking yes

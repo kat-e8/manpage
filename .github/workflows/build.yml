@@ -20,6 +20,8 @@ jobs:
           # field of sync's bind-mount spec, and an empty field there is a
           # syntax error, not a blank value like the others.
           export XLSX_HOST_PATH=/dev/null
+          export DOCKER_MCP_SSH_KEY_PATH=/dev/null
+          export DOCKER_MCP_SSH_KNOWN_HOSTS_PATH=/dev/null
           export POSTGRES_USER=ci
           export POSTGRES_PASSWORD=ci
           export POSTGRES_DB=ci

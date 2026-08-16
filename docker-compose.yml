@@ -77,8 +77,19 @@ services:
       # (see its Dockerfile), so the host socket must be bind-mounted in.
       # Whatever this MCP server does (create/stop containers, run compose)
       # happens directly on the host, same blast radius as running `docker`
-      # in a host shell -- not sandboxed by being containerized.
+      # in a host shell -- not sandboxed by being containerized. This is the
+      # server's default engine (no docker_host override on the call).
       - /var/run/docker.sock:/var/run/docker.sock
+      # Per-call docker_host="ssh://..." overrides (see DOCKER_HOST_PROPERTY
+      # in server.py) reach *other* tailnet nodes' Docker engines over SSH --
+      # e.g. katlegog, katmint. Key is a dedicated docker-mcp-only keypair
+      # (private half never leaves clubuntu, never committed to git); the
+      # known_hosts file is clubuntu's own, already carrying verified entries
+      # for those hosts, mounted read-only so the container inherits that
+      # trust instead of accepting new host keys itself. Path config in
+      # docker-mcp/ssh_config (baked into the image).
+      - ${DOCKER_MCP_SSH_KEY_PATH}:/root/.ssh/id_ed25519_docker_mcp:ro
+      - ${DOCKER_MCP_SSH_KNOWN_HOSTS_PATH}:/root/.ssh/known_hosts:ro
     networks: [codercommands]
     restart: unless-stopped
 

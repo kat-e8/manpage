@@ -57,6 +57,8 @@ services:
     container_name: docker-mcp
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_MCP_SSH_KEY_PATH}:/root/.ssh/id_ed25519_docker_mcp:ro
+      - ${DOCKER_MCP_SSH_KNOWN_HOSTS_PATH}:/root/.ssh/known_hosts:ro
     networks: [codercommands]
     restart: unless-stopped
 

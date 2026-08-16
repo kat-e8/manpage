@@ -1,0 +1,203 @@
+<title>The First Live Build</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  .added { color: var(--accent); }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.88rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+  svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-docs · 9</div>
+    <h1>The First Live Build</h1>
+    <p class="deck">The moment the runner came online, it started working through every push queued since this morning — and surfaced two real bugs the pipeline had never actually hit before.</p>
+    <div class="meta">
+      <span>run: build #7 — commit 60bac55</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>What was actually happening</h2></div>
+    <p>Every commit pushed to <code>main</code> today had already queued its own <code>build</code> job — there just wasn't a runner to claim any of them until it was finally installed and started (doc 8). The instant it went active, it began draining that backlog, one job per push, in order. The failure emails weren't a new problem appearing — they were the pipeline's genuine first execution, discovering things local testing never could, because local testing always had a real <code>.env</code> sitting in the working directory and a Docker daemon already configured to trust the registry.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>Bug 1 — a fresh checkout has no .env</h2></div>
+    <p>Every <code>${VAR}</code> in <code>docker-compose.yml</code> needs a source. Locally, that's always been a real <code>.env</code> file sitting right there. A CI checkout is different — <code>.env</code> is gitignored on purpose (docs 2 and 7 both cover why), so it simply doesn't exist in the fresh clone the runner just checked out.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 210" role="img" aria-label="On the dev laptop, a real .env file sits alongside docker-compose.yml and supplies every variable. In a fresh CI checkout, no .env exists, so most variables resolve to blank strings which compose accepts as valid but empty. XLSX_HOST_PATH is different -- it's the first field of a bind mount spec, and a blank field there is a syntax error, not a valid empty value.">
+          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">DEV LAPTOP — real .env present</text>
+          <rect x="40" y="45" width="360" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="72" text-anchor="middle" font-size="10.5" font-family="var(--font-mono)">XLSX_HOST_PATH=./coder_commands.xlsx</text>
+          <text x="220" y="92" text-anchor="middle" font-size="9.5" opacity="0.75">mount spec resolves correctly</text>
+
+          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">FRESH CI CHECKOUT — no .env at all</text>
+          <rect x="480" y="45" width="360" height="70" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="72" text-anchor="middle" font-size="10.5" fill="var(--accent)" font-family="var(--font-mono)">XLSX_HOST_PATH=</text>
+          <text x="660" y="92" text-anchor="middle" font-size="9.5" fill="var(--accent)">mount spec becomes ":/data/...:ro"</text>
+
+          <text x="440" y="145" text-anchor="middle" font-size="10">most blank vars → Compose accepts an empty <em>value</em> — just a warning</text>
+          <text x="440" y="165" text-anchor="middle" font-size="10" fill="var(--accent)">XLSX_HOST_PATH blank → empty <em>field</em> in a colon-delimited spec — a parse error</text>
+          <text x="440" y="190" text-anchor="middle" font-size="9.5" opacity="0.7">invalid spec: :/data/coder_commands.xlsx:ro: empty section between colons</text>
+        </svg>
+      </div>
+      <figcaption>Fixed in <code>build.yml</code>: export throwaway placeholder values before <code>docker compose build</code> runs. <code>build</code> never starts a container, so these values are never used for anything real — they only need to be non-empty so the file parses.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Bug 2 — the push itself, HTTPS vs. plain HTTP</h2></div>
+    <p>With the parse error fixed, the build genuinely ran — all five images built successfully. The failure moved to the very last step: <code>docker push</code>, with <code>http: server gave HTTP response to HTTPS client</code>. Docker assumes any registry speaks HTTPS unless explicitly told otherwise; this registry has only ever spoken plain HTTP (§ established when <code>.env</code> was written — deliberately, relying on Tailscale for privacy instead of TLS).</p>
+    <p>This never surfaced from the dev laptop, because the dev laptop's own Docker was already configured to trust this registry — every manual <code>docker push</code> all along had that config quietly doing its job. clubuntu's <em>own</em> Docker daemon had never been told the same thing.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 200" role="img" aria-label="The dev laptop's Docker daemon already trusts clubuntu.dala-cirius.ts.net:5000 as an insecure registry, so manual pushes from there have always worked. clubuntu's own Docker daemon, which is what the runner actually uses since it runs there, had no such configuration at all -- not even for its own hostname.">
+          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">Dev laptop's Docker</text>
+          <rect x="40" y="45" width="360" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="72" text-anchor="middle" font-size="10" font-family="var(--font-mono)">insecure-registries:</text>
+          <text x="220" y="90" text-anchor="middle" font-size="10" font-family="var(--font-mono)">clubuntu.dala-cirius.ts.net:5000 ✓</text>
+
+          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">clubuntu's own Docker</text>
+          <rect x="480" y="45" width="360" height="70" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="72" text-anchor="middle" font-size="10" fill="var(--accent)">/etc/docker/daemon.json</text>
+          <text x="660" y="90" text-anchor="middle" font-size="10" fill="var(--accent)">did not exist — nothing configured</text>
+
+          <text x="440" y="150" text-anchor="middle" font-size="10">both push to the exact same physical registry —</text>
+          <text x="440" y="170" text-anchor="middle" font-size="10">but each host's Docker daemon has its own separate trust config</text>
+        </svg>
+      </div>
+      <figcaption>The runner runs <em>on</em> clubuntu, so <code>docker compose push</code> always uses clubuntu's own daemon — never the dev laptop's, no matter how well-configured that one already was.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>Why a restart was actually necessary</h2></div>
+    <p><code>daemon.json</code> is read once, at the moment <code>dockerd</code> starts — it isn't a live-reloadable file for a setting like this. Editing it on disk changes nothing about the daemon already running in memory; only a restart makes it read the file again and pick up the new trust list.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 780 170" role="img" aria-label="dockerd loads daemon.json once at startup and keeps that configuration in memory. Editing the file on disk while the daemon is still running has no effect. Only a restart makes it re-read the file and pick up the change.">
+          <defs>
+            <marker id="fb-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="30" y="40" width="200" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="130" y="65" text-anchor="middle" font-size="10.5">dockerd running</text>
+          <text x="130" y="85" text-anchor="middle" font-size="9.5" opacity="0.75">old config, in memory</text>
+
+          <line x1="230" y1="75" x2="310" y2="75" stroke="currentColor" marker-end="url(#fb-arrow)" />
+          <text x="270" y="63" text-anchor="middle" font-size="9">edit file</text>
+
+          <rect x="310" y="40" width="200" height="70" rx="6" fill="none" stroke="currentColor" stroke-dasharray="3 3" />
+          <text x="410" y="65" text-anchor="middle" font-size="10.5">daemon.json on disk</text>
+          <text x="410" y="85" text-anchor="middle" font-size="9.5" opacity="0.75">new content, not yet loaded</text>
+
+          <line x1="510" y1="75" x2="590" y2="75" stroke="var(--accent)" marker-end="url(#fb-arrow)" />
+          <text x="550" y="63" text-anchor="middle" font-size="9" fill="var(--accent)">restart</text>
+
+          <rect x="590" y="40" width="180" height="70" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="680" y="65" text-anchor="middle" font-size="10.5" fill="var(--accent)">dockerd running</text>
+          <text x="680" y="85" text-anchor="middle" font-size="9.5" fill="var(--accent)">new config, now active</text>
+
+          <text x="405" y="145" text-anchor="middle" font-size="9.5" opacity="0.7">no restart, no effect — the file and the running process are independent until then</text>
+        </svg>
+      </div>
+      <figcaption>Not a peculiarity of this fix — true of most daemon-level Docker settings.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>The real cost of that restart — and live-restore</h2></div>
+    <p>By default, containers are tied to <code>dockerd</code>'s own lifecycle — restarting the daemon restarts everything it manages, and clubuntu runs a dozen other projects' containers, not just this one. <code>"live-restore": true</code> changes that relationship: containers actually run under <code>containerd</code>, a lower-level daemon <code>dockerd</code> normally supervises; with live-restore on, <code>containerd</code> keeps them running independently even while <code>dockerd</code> itself restarts.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 190" role="img" aria-label="Without live-restore, restarting dockerd also stops and restarts every container it manages. With live-restore enabled, containerd keeps containers running independently, so a dockerd restart no longer disturbs them.">
+          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">WITHOUT live-restore</text>
+          <rect x="40" y="45" width="360" height="80" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="70" text-anchor="middle" font-size="10.5">dockerd restart</text>
+          <text x="220" y="90" text-anchor="middle" font-size="9.5" opacity="0.75">→ every managed container stops, then restarts</text>
+          <text x="220" y="108" text-anchor="middle" font-size="9.5" opacity="0.75">brief interruption, every time, for everything</text>
+
+          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">WITH live-restore: true</text>
+          <rect x="480" y="45" width="360" height="80" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="70" text-anchor="middle" font-size="10.5" fill="var(--accent)">dockerd restart</text>
+          <text x="660" y="90" text-anchor="middle" font-size="9.5" fill="var(--accent)">→ containerd keeps containers running underneath</text>
+          <text x="660" y="108" text-anchor="middle" font-size="9.5" fill="var(--accent)">dockerd just reattaches once it's back</text>
+        </svg>
+      </div>
+      <figcaption>This one restart still briefly interrupted everything (the old daemon hadn't loaded live-restore yet) — but every <em>future</em> restart on this host, for any reason, won't touch running containers again.</figcaption>
+    </figure>
+    <p>Verified after: all containers back within ~32 seconds, none lost, <code>docker info</code> confirms both <code>clubuntu.dala-cirius.ts.net:5000</code> and <code>live-restore</code> active.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>Verified</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Check</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Manual push after the daemon fix</td><td class="status-yes">✓ succeeded — 12 layers, real digest, exit 0</td></tr>
+          <tr><td>Registry catalog</td><td class="status-yes">✓ <code>postgres-mcp</code> now present</td></tr>
+          <tr><td>Other containers on clubuntu</td><td class="status-yes">✓ all survived the restart</td></tr>
+          <tr><td>Full CI run, both bugs fixed together</td><td>pending — re-run of build #7's failed job</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>git-docs — 9 · run: build #7 — commit 60bac55</footer>
+</div>

@@ -1,0 +1,140 @@
+<title>Swapping the Registrations</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  .status-no { color: var(--ink-soft); }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">final-run · 2 of 3</div>
+    <h1>Swapping the Registrations</h1>
+    <p class="deck">With the decision made — one gateway, user scope — this covers exactly what ran on this laptop to remove the old local-project registrations and replace them with cloud ones, and what came back when it was checked.</p>
+    <div class="meta">
+      <span>scope: user (all projects, this laptop)</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>Starting state</h2></div>
+    <p><code>claude mcp list</code> showed three local-scoped entries, tied only to the <code>ManPage</code> project directory. Two were already broken from an earlier renaming pass done on this project (pointing at MCP routes that no longer existed); one — <code>docker</code> — was still working, but at the old local route rather than the cloud gateway.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Old target</th><th>State before swap</th></tr></thead>
+        <tbody>
+          <tr><td><code>codercommands</code></td><td>old local <code>/mcp</code> route</td><td class="status-no">already broken</td></tr>
+          <tr><td><code>postgres</code></td><td>old local SSE <code>/postgres-mcp/sse</code> route</td><td class="status-no">already broken</td></tr>
+          <tr><td><code>docker</code></td><td>local <code>/docker-mcp</code></td><td class="status-yes">working, but local-only</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>Step 1 — remove the old registrations</h2></div>
+    <div class="code-panel">
+      <div class="code-panel-label">remove, local scope</div>
+      <pre>claude mcp remove codercommands
+claude mcp remove postgres
+claude mcp remove docker</pre>
+    </div>
+    <p>All three confirmed removed from the local config scoped to the <code>ManPage</code> project — the only scope they had ever been registered at.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Step 2 — add the cloud registrations, at user scope</h2></div>
+    <p>All three upstream MCP servers speak the same transport — MCP Streamable HTTP — proxied through the one gateway on clubuntu, so all three were added the same way, differing only in path:</p>
+    <div class="code-panel">
+      <div class="code-panel-label">add, user scope</div>
+      <pre>claude mcp add --transport http codercommands http://clubuntu.dala-cirius.ts.net:8100/coder-commands-mcp -s user
+claude mcp add --transport http docker http://clubuntu.dala-cirius.ts.net:8100/docker-mcp -s user
+claude mcp add --transport http postgres http://clubuntu.dala-cirius.ts.net:8100/postgres-mcp -s user</pre>
+    </div>
+    <p>All three confirmed <code>"Added ... to user config"</code>, with no <code>[project: ...]</code> tag on any of them — the marker that a registration is local-scoped. Its absence is what confirms these landed at user scope instead.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 200" role="img" aria-label="Before: three local-scoped registrations inside the ManPage project, two broken, pointed at local or stale routes. After: three user-scoped registrations, all pointed at the one cloud gateway on clubuntu, visible from every project on the laptop.">
+          <text x="220" y="24" text-anchor="middle" font-size="11" letter-spacing="1">BEFORE</text>
+          <rect x="40" y="42" width="360" height="90" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="65" text-anchor="middle" font-size="10">3 local-scoped entries</text>
+          <text x="220" y="85" text-anchor="middle" font-size="9.5" opacity="0.75">2 broken · 1 working, local-only</text>
+          <text x="220" y="103" text-anchor="middle" font-size="9.5" opacity="0.75">visible only inside ManPage</text>
+
+          <text x="660" y="24" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">AFTER</text>
+          <rect x="480" y="42" width="360" height="90" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="65" text-anchor="middle" font-size="10" fill="var(--accent)">3 user-scoped entries</text>
+          <text x="660" y="85" text-anchor="middle" font-size="9.5" fill="var(--accent)">all → clubuntu gateway, port 8100</text>
+          <text x="660" y="103" text-anchor="middle" font-size="9.5" fill="var(--accent)">visible from every project on this laptop</text>
+        </svg>
+      </div>
+      <figcaption>The three names — <code>codercommands</code>, <code>docker</code>, <code>postgres</code> — stayed the same; only their scope and target URL changed.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>Step 3 — verify: the swap wasn't actually done yet</h2></div>
+    <p><code>claude mcp list</code> is the standard check after any registration change. Here, it revealed the swap wasn't actually finished — all three new entries failed to connect, each with the same confusing error. That failure, and its real cause, is covered in full in doc 3.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>New target</th><th>First check</th></tr></thead>
+        <tbody>
+          <tr><td><code>codercommands</code></td><td><code>http://clubuntu.dala-cirius.ts.net:8100/coder-commands-mcp</code></td><td class="status-no">✘ failed — see doc 3</td></tr>
+          <tr><td><code>docker</code></td><td><code>http://clubuntu.dala-cirius.ts.net:8100/docker-mcp</code></td><td class="status-no">✘ failed — see doc 3</td></tr>
+          <tr><td><code>postgres</code></td><td><code>http://clubuntu.dala-cirius.ts.net:8100/postgres-mcp</code></td><td class="status-no">✘ failed — see doc 3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The commands above were correct — path, transport, and scope all landed exactly as intended. What was missing was an authentication header the gateway had required all along, discovered only once these registrations were actually exercised.</p>
+  </section>
+
+  <footer>final-run — 2 of 3 · registrations correct, connectivity fixed in doc 3</footer>
+</div>

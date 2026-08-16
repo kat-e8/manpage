@@ -1,0 +1,135 @@
+<title>One Gateway, Not Two</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.notelist li { position: relative; padding-left: 22px; }
+  ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">final-run · 1 of 3</div>
+    <h1>One Gateway, Not Two</h1>
+    <p class="deck">With the stack live on clubuntu, this laptop still ran its own local copy of the same three MCP servers. Deciding what to do about that meant correcting a wrong first assumption about how these servers were actually built.</p>
+    <div class="meta">
+      <span>decision: single cloud gateway, per-call targeting</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>The question</h2></div>
+    <p>The stack now runs permanently on clubuntu. This laptop is where the source tree lives and where Claude Code is actually used day to day — and it still had its own local <code>docker compose up</code> stack running the same three MCP servers: <code>coder-commands-mcp</code>, <code>docker-mcp</code>, <code>postgres-mcp</code>. The question: keep using the local stack, or connect this laptop's Claude Code to the cloud instance instead?</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>The wrong frame, and the correction</h2></div>
+    <p>The first framing treated this as "local servers vs. cloud servers" — as if <code>docker-mcp</code> and <code>postgres-mcp</code> were tied to whichever host they happen to run on, so switching meant picking one location and losing the other. That framing was wrong, and had already been ruled out by earlier work on this project: both servers were deliberately built to take a per-call target override — <code>docker_host</code> for <code>docker-mcp</code> (an <code>ssh://</code> URL), <code>connection_uri</code> for <code>postgres-mcp</code> — specifically so one running instance could reach <em>any</em> Docker daemon or Postgres database, not just the one it happens to be deployed next to.</p>
+    <p>Once corrected, the real question wasn't "local or cloud" — it was "how many gateway instances should exist at all," and the answer became straightforward: one. A single, centrally-hosted gateway, with per-call parameters doing the work of reaching different hosts, rather than running a duplicate stack on every machine that needs the tools.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 260" role="img" aria-label="Rejected model: a separate MCP stack duplicated on every machine, each only able to reach its own local Docker and Postgres. Adopted model: one central gateway on clubuntu, reached by every machine's Claude Code, with docker-mcp and postgres-mcp targeting whichever host is named in a per-call docker_host or connection_uri override.">
+          <text x="220" y="24" text-anchor="middle" font-size="11" letter-spacing="1">REJECTED — one stack per machine</text>
+          <rect x="40" y="42" width="170" height="60" rx="6" fill="none" stroke="currentColor" />
+          <text x="125" y="65" text-anchor="middle" font-size="9.5">laptop's own</text>
+          <text x="125" y="82" text-anchor="middle" font-size="9.5">docker-mcp / postgres-mcp</text>
+          <rect x="250" y="42" width="170" height="60" rx="6" fill="none" stroke="currentColor" />
+          <text x="335" y="65" text-anchor="middle" font-size="9.5">clubuntu's own</text>
+          <text x="335" y="82" text-anchor="middle" font-size="9.5">docker-mcp / postgres-mcp</text>
+          <text x="230" y="122" text-anchor="middle" font-size="9" opacity="0.75">two stacks, kept in sync by hand, each reaching only its own host</text>
+
+          <text x="660" y="24" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">ADOPTED — one gateway, per-call target</text>
+          <rect x="560" y="42" width="220" height="55" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="670" y="63" text-anchor="middle" font-size="10" fill="var(--accent)">gateway on clubuntu</text>
+          <text x="670" y="80" text-anchor="middle" font-size="9" fill="var(--accent)">docker-mcp · postgres-mcp · coder-commands-mcp</text>
+
+          <line x1="670" y1="97" x2="670" y2="140" stroke="var(--accent)" />
+          <text x="670" y="152" text-anchor="middle" font-size="9" fill="var(--accent)">docker_host=ssh://...</text>
+          <text x="670" y="168" text-anchor="middle" font-size="9" fill="var(--accent)">connection_uri=postgres://...</text>
+          <text x="670" y="184" text-anchor="middle" font-size="9" fill="var(--accent)">— target chosen per call, not per deployment</text>
+
+          <text x="440" y="225" text-anchor="middle" font-size="10">every machine's Claude Code talks to the same one gateway;</text>
+          <text x="440" y="243" text-anchor="middle" font-size="10">reaching a different host is a call argument, never a second install</text>
+        </svg>
+      </div>
+      <figcaption>This treats all three MCP servers identically — <code>coder-commands-mcp</code> was already single-instance by nature (it only ever serves its own Postgres data); the correction was recognizing <code>docker-mcp</code> and <code>postgres-mcp</code> were built to work the same way.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Two gaps, deliberately deferred</h2></div>
+    <p>Cross-host targeting only actually works once the target is reachable. Two real gaps were flagged, not fixed yet:</p>
+    <ul class="notelist">
+      <li><code>docker-mcp</code>'s own container has no SSH client or private key installed, so a <code>docker_host=ssh://...</code> override has nothing to authenticate outbound with.</li>
+      <li>This laptop's local Postgres has no port published to the network, so a <code>connection_uri</code> override from the cloud <code>postgres-mcp</code> has nothing to connect to.</li>
+    </ul>
+    <p>Both are cross-host <em>reachability</em> problems — separate from where the gateway itself runs. Agreed sequencing: switch this laptop's registrations to the cloud gateway first, since that's the immediate need, and take on the SSH/network work afterward once the switch itself is proven.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>Scope: user, not project</h2></div>
+    <p>Claude Code supports three MCP configuration scopes: <code>local</code> (the default — private, tied to one project directory), <code>project</code> (<code>.mcp.json</code>, committed and shared with anyone who clones the repo), and <code>user</code> (global, applies across every project on the machine). The existing registrations were local-scoped — only visible inside the <code>ManPage</code> project directory.</p>
+    <p>That was the wrong scope for what was actually wanted: cloud tool access from <em>any</em> project worked on this laptop, not just this one. <code>user</code> scope was the deliberate choice.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 190" role="img" aria-label="Local scope registers an MCP server only for the ManPage project directory -- other projects on the laptop see nothing. User scope registers it once, in the machine-wide Claude Code config, so every project on the laptop can reach the same cloud gateway.">
+          <text x="220" y="24" text-anchor="middle" font-size="11" letter-spacing="1">local scope (previous)</text>
+          <rect x="40" y="42" width="360" height="90" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="65" text-anchor="middle" font-size="10">registered inside ManPage only</text>
+          <text x="220" y="85" text-anchor="middle" font-size="9.5" opacity="0.75">other projects on this laptop:</text>
+          <text x="220" y="103" text-anchor="middle" font-size="9.5" opacity="0.75">no access to these tools at all</text>
+
+          <text x="660" y="24" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">user scope (adopted)</text>
+          <rect x="480" y="42" width="360" height="90" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="65" text-anchor="middle" font-size="10" fill="var(--accent)">registered once, machine-wide</text>
+          <text x="660" y="85" text-anchor="middle" font-size="9.5" fill="var(--accent)">every project Claude Code opens on this</text>
+          <text x="660" y="103" text-anchor="middle" font-size="9.5" fill="var(--accent)">laptop reaches the same cloud gateway</text>
+        </svg>
+      </div>
+      <figcaption>Confirmed after adding: <code>claude mcp add ... -s user</code> reported "Added ... to user config" with no <code>[project: ...]</code> tag.</figcaption>
+    </figure>
+    <p>Scope and location are separate decisions worth naming individually — <em>user vs. project</em> is about which projects on this machine can see the registration; it says nothing about which host the registered server actually runs on. Both had to be decided here, not just one.</p>
+  </section>
+
+  <footer>final-run — 1 of 3 · decision reached, execution in doc 2</footer>
+</div>

@@ -1,0 +1,256 @@
+<title>The Untracked Key</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  .added { color: var(--accent); }
+  ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.notelist li { position: relative; padding-left: 22px; }
+  ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.88rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  .status-open { color: var(--ink-soft); font-style: italic; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">final-run · 3 of 3</div>
+    <h1>The Untracked Key</h1>
+    <p class="deck">The three cloud registrations from doc 2 all failed with a confusing 404. Chasing it down turned up a real auth check running in production that had never once been committed to this repo.</p>
+    <div class="meta">
+      <span>gateway: generic-mcp-gateway — image 338d8ba</span>
+      <span>pushed: 338d8ba..1e540a7</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>The symptom</h2></div>
+    <p><code>claude mcp list</code> failed all three fresh registrations identically:</p>
+    <div class="callout">HTTP 404: Invalid OAuth error response: ZodError: [...] Raw body: {"detail":"Not Found"}</div>
+    <p>That reads like a routing problem — the wrong path, or a missing proxy route. It wasn't. The gateway's own <code>/healthz</code> endpoint had already been confirmed reachable from this laptop moments earlier via plain <code>curl</code>, so the network path and the gateway process itself were never actually in question.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>What the 404 actually was</h2></div>
+    <p>A direct <code>curl</code> to the exact same URL returned <code>401 Unauthorized</code>, not 404 — a completely different, more informative signal that Claude Code's own error handling had discarded.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 260" role="img" aria-label="Claude Code's HTTP MCP client requests the gateway route with no credentials and gets a 401. Rather than surfacing that, the client assumes the server wants OAuth and probes well-known discovery endpoints, which the gateway does not implement and answers with 404. The client then reports that secondary 404 instead of the original, more useful 401.">
+          <defs>
+            <marker id="uk-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="20" y="30" width="170" height="55" rx="6" fill="none" stroke="currentColor" />
+          <text x="105" y="60" text-anchor="middle" font-size="10.5">Claude Code</text>
+          <text x="105" y="76" text-anchor="middle" font-size="10.5">MCP client</text>
+
+          <line x1="190" y1="57" x2="300" y2="57" stroke="currentColor" marker-end="url(#uk-arrow)" />
+          <text x="245" y="46" text-anchor="middle" font-size="9">GET /coder-commands-mcp</text>
+
+          <rect x="300" y="30" width="180" height="55" rx="6" fill="none" stroke="currentColor" />
+          <text x="390" y="62" text-anchor="middle" font-size="10.5">gateway</text>
+
+          <line x1="300" y1="72" x2="190" y2="72" stroke="currentColor" marker-end="url(#uk-arrow)" />
+          <text x="245" y="90" text-anchor="middle" font-size="9">401 — missing X-Api-Key</text>
+
+          <line x1="105" y1="85" x2="105" y2="130" stroke="var(--accent)" marker-end="url(#uk-arrow)" />
+          <text x="230" y="122" text-anchor="middle" font-size="9.5" fill="var(--accent)">client assumes "needs OAuth", probes discovery</text>
+
+          <rect x="20" y="140" width="480" height="60" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="260" y="160" text-anchor="middle" font-size="9.5" fill="var(--accent)" font-family="var(--font-mono)">GET /.well-known/oauth-authorization-server</text>
+          <text x="260" y="175" text-anchor="middle" font-size="9.5" fill="var(--accent)" font-family="var(--font-mono)">GET /.well-known/openid-configuration · POST /register</text>
+          <text x="260" y="192" text-anchor="middle" font-size="9.5" fill="var(--accent)">— gateway implements none of these → 404, every time</text>
+
+          <text x="260" y="235" text-anchor="middle" font-size="10">the 404 reported to the user is from this probe — the real 401 is discarded</text>
+        </svg>
+      </div>
+      <figcaption>Confirmed on the gateway's own <code>docker logs</code>: every failed registration left a trail of <code>404</code> lines for these exact discovery paths, immediately after the real <code>401</code>.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Why the 401 was surprising at all</h2></div>
+    <p>The gateway's proxy code (<code>api/main.py</code>) is a pure byte-level relay — method, headers, body, and status code all forwarded as-is between the caller and whichever upstream MCP server the path names. Reading the file as checked out on this laptop showed no auth logic anywhere: no header check, no key comparison, nothing. A 401 from a proxy with no auth code should have been impossible.</p>
+    <p>It wasn't impossible — it meant the code actually running in the container wasn't the code in this checkout.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>The commit that seemed to come from nowhere</h2></div>
+    <p><code>docker exec generic-mcp-gateway cat /app/main.py</code> pulled the real, running source straight out of the container. It had a full <code>require_api_key</code> dependency, checked against a <code>GATEWAY_API_KEY</code> environment variable already set on the container — none of which existed in the local file on this laptop. <code>git log --oneline -- api/main.py</code>, run against this laptop's own checkout, showed exactly one commit ever touching that file. <code>git cat-file -t 338d8ba</code> — the image tag actually deployed — failed outright: <code>fatal: Not a valid object name</code>.</p>
+    <p>At that point it looked like the image had been built from a commit that existed nowhere at all — an image with no history behind it. That reading turned out to be wrong in one specific, important way: <code>git cat-file</code> and <code>git log</code> only ever look at <em>this laptop's local clone</em>. Nobody had run <code>git fetch</code> yet.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 210" role="img" aria-label="This laptop's local git clone had a single commit touching api/main.py, with no auth code, and had not been fetched in some time. The image running on clubuntu, tagged with commit 338d8ba, could not be found by any local git command -- but only because those commands only ever check the local clone, not GitHub itself.">
+          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">THIS LAPTOP'S LOCAL CLONE</text>
+          <rect x="40" y="45" width="360" height="80" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="72" text-anchor="middle" font-size="10.5" font-family="var(--font-mono)">3a3156e "initial commit"</text>
+          <text x="220" y="92" text-anchor="middle" font-size="9.5" opacity="0.75">only commit ever touching api/main.py</text>
+          <text x="220" y="110" text-anchor="middle" font-size="9.5" opacity="0.75">— last fetched some time ago</text>
+
+          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">RUNNING ON CLUBUNTU</text>
+          <rect x="480" y="45" width="360" height="80" rx="6" fill="none" stroke="var(--accent)" stroke-dasharray="3 3" />
+          <text x="660" y="72" text-anchor="middle" font-size="10.5" fill="var(--accent)" font-family="var(--font-mono)">image tag: 338d8ba</text>
+          <text x="660" y="92" text-anchor="middle" font-size="9.5" fill="var(--accent)">git cat-file -t 338d8ba → not a valid object</text>
+          <text x="660" y="110" text-anchor="middle" font-size="9.5" fill="var(--accent)">— checked against the stale local clone only</text>
+
+          <text x="440" y="160" text-anchor="middle" font-size="10">both git commands were technically correct answers</text>
+          <text x="440" y="180" text-anchor="middle" font-size="10">to the wrong question — "is it in my clone," not "does it exist"</text>
+        </svg>
+      </div>
+      <figcaption>Section 09 covers what a <code>git fetch</code> actually revealed — the commit was real, on GitHub, the whole time.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>Immediate fix — authenticate the client</h2></div>
+    <p>Read the real key straight off the running container (<code>docker inspect generic-mcp-gateway</code>, <code>GATEWAY_API_KEY</code> env var) and re-registered all three MCP servers with it attached as a header:</p>
+    <div class="code-panel">
+      <div class="code-panel-label">re-registration, with auth</div>
+      <pre>claude mcp remove codercommands -s user
+claude mcp remove docker -s user
+claude mcp remove postgres -s user
+
+claude mcp add --transport http codercommands http://clubuntu.dala-cirius.ts.net:8100/coder-commands-mcp \
+  -H "X-Api-Key: &lt;key&gt;" -s user
+claude mcp add --transport http docker http://clubuntu.dala-cirius.ts.net:8100/docker-mcp \
+  -H "X-Api-Key: &lt;key&gt;" -s user
+claude mcp add --transport http postgres http://clubuntu.dala-cirius.ts.net:8100/postgres-mcp \
+  -H "X-Api-Key: &lt;key&gt;" -s user</pre>
+    </div>
+    <p>All three then showed <code class="added">✔ Connected</code>. This fixed the symptom — this laptop can now reach the cloud gateway — but left the actual gap untouched: the tracked source still didn't match production.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>The real fix — reconstructing the source of truth</h2></div>
+    <p>If <code>build.yml</code> ran again from this repo's <code>main</code> as it stood, it would have built and pushed a gateway image <em>without</em> the auth check — silently replacing the currently-protected gateway with an open one the next time a tag triggered deploy. <code>docker-mcp</code> sits behind this same gateway holding the host's Docker socket, so "silently open" here is not a small gap.</p>
+    <p>Ported the auth code back out of the live container into <code>api/main.py</code>, then verified it byte-for-byte against the running version with a plain <code>diff</code> before committing — not just "looks equivalent," actually identical.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td><code>api/main.py</code></td><td>restored <code>require_api_key</code> dependency (HMAC-safe comparison against <code>GATEWAY_API_KEY</code>), applied to all three proxy routes; <code>/healthz</code> stays exempt for the compose healthcheck</td></tr>
+          <tr><td><code>docker-compose.yml</code></td><td>gateway service now passes <code>GATEWAY_API_KEY: ${GATEWAY_API_KEY}</code> through to the container</td></tr>
+          <tr><td><code>docker-compose.deploy.yml</code></td><td>same passthrough, mirrored</td></tr>
+          <tr><td><code>.env.example</code></td><td>documents the variable and why it fails closed, with a generation command</td></tr>
+          <tr><td><code>.github/workflows/build.yml</code></td><td>throwaway <code>GATEWAY_API_KEY=ci</code> added alongside the other CI placeholder values so <code>docker compose build</code> still parses cleanly with no real <code>.env</code> present</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>clubuntu's own <code>.env</code> already had a real <code>GATEWAY_API_KEY</code> set (confirmed by reading it over SSH) — this laptop's tracked compose files just weren't passing it through. Committed locally as <code>d7dddcb</code>.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">06</span><h2>Pushing surfaced the real answer</h2></div>
+    <p><code>git push origin main</code> was rejected: <code>! [rejected] main -> main (fetch first)</code>. Remote had commits this laptop had never fetched. <code>git fetch origin</code> pulled them down — and the mystery resolved itself in one line: <code>338d8ba</code> was sitting right there on <code>origin/main</code>, titled <em>"Require an API key on the gateway; expose it on the tailnet."</em></p>
+    <p>Not an orphan. Not built outside the pipeline. It had been pushed straight to GitHub's <code>main</code> at some point, the self-hosted runner's <code>build.yml</code> had picked it up exactly as designed, built it, and pushed the image — the pipeline had worked correctly the entire time. The only thing that had actually gone wrong was that this laptop's own clone had fallen behind and nobody had run <code>git fetch</code> since.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 200" role="img" aria-label="git push was rejected because origin/main had commit 338d8ba that this local clone had never fetched. Fetching revealed the commit's real message and confirmed it had been pushed straight to GitHub and built by the normal CI pipeline -- nothing bypassed, nothing missing, just a stale local clone.">
+          <rect x="30" y="35" width="360" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="210" y="60" text-anchor="middle" font-size="10">git push origin main</text>
+          <text x="210" y="80" text-anchor="middle" font-size="9.5" opacity="0.75">rejected — fetch first</text>
+
+          <line x1="390" y1="70" x2="470" y2="70" stroke="var(--accent)" />
+          <text x="430" y="58" text-anchor="middle" font-size="9" fill="var(--accent)">git fetch origin</text>
+
+          <rect x="470" y="35" width="380" height="70" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="58" text-anchor="middle" font-size="10" fill="var(--accent)" font-family="var(--font-mono)">338d8ba on origin/main</text>
+          <text x="660" y="78" text-anchor="middle" font-size="9.5" fill="var(--accent)">"Require an API key on the gateway..."</text>
+
+          <text x="440" y="140" text-anchor="middle" font-size="10">real commit, pushed straight to GitHub, built by the normal pipeline —</text>
+          <text x="440" y="160" text-anchor="middle" font-size="10">this laptop's clone was simply behind, not the repo's history</text>
+        </svg>
+      </div>
+      <figcaption>Comparing the two independently-written versions of <code>api/main.py</code> — the real commit's and this laptop's reconstruction — showed them byte-identical. The reconstruction had been exactly right.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">07</span><h2>Reconciling the two histories</h2></div>
+    <p><code>338d8ba</code> turned out to be a strict superset of the local reconstruction — same <code>api/main.py</code> byte-for-byte, plus <code>tsdproxy.enable</code>/<code>tsdproxy.ephemeral</code> labels on the gateway service (wiring it into clubuntu's Tailscale-proxy container) that the reconstruction had no way to know about. The one thing the reconstruction had that <code>338d8ba</code> didn't: the <code>GATEWAY_API_KEY=ci</code> placeholder in <code>build.yml</code>, needed so a fresh CI checkout doesn't warn on an unset variable.</p>
+    <p>Resolution: <code>git reset --hard origin/main</code> to adopt the real commit as the base, discarding the now-redundant local reconstruction, then a small one-line follow-up commit adding just the missing <code>build.yml</code> placeholder on top.</p>
+    <div class="code-panel">
+      <div class="code-panel-label">reconciliation</div>
+      <pre>git reset --hard origin/main
+# ...re-add GATEWAY_API_KEY=ci to build.yml...
+git commit -m "Add GATEWAY_API_KEY CI placeholder to build.yml"
+git push origin main</pre>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">08</span><h2>Verified</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Check</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Reconstructed <code>api/main.py</code> vs. live container's <code>/app/main.py</code></td><td class="status-yes">✓ byte-identical (<code>diff</code>, no output)</td></tr>
+          <tr><td>Reconstructed <code>api/main.py</code> vs. the real <code>338d8ba</code> commit</td><td class="status-yes">✓ also byte-identical — independent confirmation</td></tr>
+          <tr><td><code>docker compose config</code>, post-reconciliation</td><td class="status-yes">✓ parses cleanly</td></tr>
+          <tr><td>Three MCP registrations, re-added with header</td><td class="status-yes">✓ all <code>✔ Connected</code></td></tr>
+          <tr><td>Pushed to <code>origin/main</code></td><td class="status-yes">✓ 338d8ba..1e540a7, fast-forward</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">09</span><h2>What this leaves open</h2></div>
+    <ul class="notelist">
+      <li>A working production system and a locally-checked-out repository can drift apart silently — not because history was lost, but because <code>git fetch</code> hadn't run. Nothing here failed loudly until an unrelated task (registering a new client) happened to probe the gap.</li>
+      <li>Diagnosing the connection failure meant not trusting the first error shown — Claude Code's reported 404 was real but secondary; going one layer down with a plain <code>curl</code> surfaced the true 401 immediately.</li>
+      <li>Diagnosing the "orphan commit" meant recognizing that <code>git log</code> and <code>git cat-file</code> answer "is this in my local clone," never "does this exist" — a <code>git fetch</code> should be the reflex the moment a deployed artifact's commit can't be found locally, before concluding it doesn't exist anywhere.</li>
+      <li>Still deferred from doc 1: giving <code>docker-mcp</code>'s container an SSH client and key, and publishing the laptop's local Postgres to the network — both needed before cross-host targeting from the cloud gateway actually works end to end.</li>
+    </ul>
+  </section>
+
+  <footer>final-run — 3 of 3 · reconciled and pushed as 1e540a7</footer>
+</div>

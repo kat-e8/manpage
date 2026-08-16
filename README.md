@@ -9,11 +9,12 @@ Full build history, decisions, and issues found along the way are in
 `coderCommands_Plan/` (`Step01_...` through `Step09_...`), and the original
 plan/decisions summary is `CodeCommands.pdf`.
 
-Moving this stack to a cloud server (clubuntu, over Tailscale) via an
-immutable-image CI/CD pipeline — self-hosted GitHub Actions runner,
-tag-gated deploys, no codebase ever shipped to the server — is documented
-in [`Deployment/`](Deployment/), a seven-part walkthrough plus a concepts
-FAQ, each as its own diagram-heavy PDF.
+This stack also runs on a cloud server, `clubuntu`, over Tailscale — a
+live CI/CD pipeline, not just a plan. See [Deployment](#deployment) below
+for how it works, [`Deployment/`](Deployment/) for the original design
+walkthrough, and [`git-docs/`](git-docs/) for the real execution record —
+every command that actually ran, including two bugs found and fixed on
+the first live run.
 
 ## Architecture
 
@@ -74,6 +75,48 @@ Check everything is healthy:
 docker compose ps
 claude mcp get codercommands
 ```
+
+## Deployment
+
+Runs in two places: locally (above, for development) and on `clubuntu`
+(a cloud Linux server, reached over Tailscale) via a real, live CI/CD
+pipeline — tested end to end, including a rollback.
+
+**How it works:**
+- Every push to `main` builds all five buildable services and pushes them
+  to a private registry (`clubuntu.dala-cirius.ts.net:5000`), tagged by
+  commit SHA — `.github/workflows/build.yml`. This never touches what's
+  running; it only stocks the registry.
+- A `git tag vX.Y.Z` push resolves that tag to a commit, pulls its
+  already-built images (never rebuilds), and brings the stack up on
+  clubuntu — `.github/workflows/deploy.yml`. Deploy only happens on a tag,
+  deliberately, so a routine push to `main` can never take down what's live.
+- Both are picked up by a self-hosted GitHub Actions runner living on
+  clubuntu itself — no port opened, no source code ever lands there as a
+  persistent artifact, only images, `docker-compose.deploy.yml`, and the
+  deploy directory's own `.env`.
+
+**Making a release:**
+```
+git push origin main              # builds, doesn't deploy
+git tag v1.2.3
+git push origin v1.2.3            # this is the deploy gate
+```
+
+**Rolling back** — the identical pipeline, pointed at an older commit,
+never a rebuild:
+```
+git tag v1.2.4-rollback <older-commit-sha>
+git push origin v1.2.4-rollback
+```
+
+**Documentation:**
+- [`Deployment/`](Deployment/) — the original design walkthrough: concepts,
+  diagrams, why each piece exists, written before any of it was built.
+- [`git-docs/`](git-docs/) — the real execution record, written as it
+  happened: every command that actually ran standing up the runner, two
+  production bugs hit and fixed on the first live build, and a genuine
+  rollback test with before/after container state.
 
 ## Updating the command reference
 

@@ -33,6 +33,7 @@
   .section-head { display: flex; align-items: baseline; gap: 12px; }
   .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
   h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  h3 { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin: 0; }
   p { margin: 0; max-width: 66ch; }
   code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
   figure { margin: 4px 0 0; max-width: 900px; }
@@ -47,12 +48,12 @@
   ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
   ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
   .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.9rem; }
-  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.9rem; }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.86rem; }
   th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
-  td code { font-family: var(--font-mono); }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
   .table-wrap { overflow-x: auto; max-width: 900px; }
-  .status-pending { color: var(--ink-soft); font-style: italic; }
+  .status-yes { color: var(--accent); font-weight: 600; }
   footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
   svg text { fill: currentColor; font-family: var(--font-mono); }
   svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
@@ -60,118 +61,250 @@
 
 <div class="page">
   <header class="masthead">
-    <div class="eyebrow">git-docs · 8 — execution log (in progress)</div>
+    <div class="eyebrow">git-docs · 8 — complete account</div>
     <h1>Standing Up the Runner</h1>
-    <p class="deck">What the self-hosted runner actually is on disk, the user-isolation decision behind it, and the four-phase install. Verification appended once each phase is confirmed run.</p>
+    <p class="deck">What GitHub Actions is, what every command actually did, and the real sequence of what happened getting the runner live — deviations included, not just the clean plan.</p>
     <div class="meta">
       <span>host: clubuntu.dala-cirius.ts.net</span>
+      <span>service: actions.runner.kat-e8-manpage.clubuntu.service</span>
       <span>2026-08-16</span>
     </div>
   </header>
 
   <section class="wide">
-    <div class="section-head"><span class="section-num">01</span><h2>The decision: a dedicated user, not katlego</h2></div>
-    <p><code>katlego</code> already has everything technically needed — docker-group membership, ownership of the deploy directory. Using it would've meant zero new setup. Chose the more isolated path instead, on purpose.</p>
+    <div class="section-head"><span class="section-num">00</span><h2>What GitHub Actions actually is</h2></div>
+    <p>A push or a tag is an event. GitHub's own servers match that event against every workflow file's trigger, resolve the matching one into a concrete <strong>job</strong> — an ordered list of steps, fully expanded, nothing left to interpret — and place it in a queue. A <strong>runner</strong> is a separate agent process, living wherever it's installed, that polls GitHub asking for queued jobs matching its labels, and executes whatever it's handed. Everything in this document is about that agent: getting one installed, identified, and running permanently on clubuntu.</p>
     <figure>
       <div class="diagram-frame">
-        <svg viewBox="0 0 880 210" role="img" aria-label="Running the runner as katlego reuses an account that also has sudo access -- broader than necessary. A dedicated ghrunner user, in the docker group only, with no sudo, scopes the runner's reach to exactly what it needs: controlling Docker.">
-          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">NOT CHOSEN — run as katlego</text>
-          <rect x="40" y="45" width="360" height="100" rx="6" fill="none" stroke="currentColor" />
-          <text x="220" y="70" text-anchor="middle" font-size="10.5">groups: katlego, sudo, docker, users</text>
-          <text x="220" y="90" text-anchor="middle" font-size="9.5" opacity="0.75">zero new setup</text>
-          <text x="220" y="108" text-anchor="middle" font-size="9.5" opacity="0.75">but a compromised job now sits in an</text>
-          <text x="220" y="124" text-anchor="middle" font-size="9.5" opacity="0.75">account that's one password away from root</text>
+        <svg viewBox="0 0 820 190" role="img" aria-label="GitHub matches an event to a workflow and resolves it into a job -- an ordered list of steps. A runner polls GitHub for jobs matching its labels, and executes whatever it receives, with no awareness of why it was chosen.">
+          <defs>
+            <marker id="gh-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+            <marker id="gh-arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)" />
+            </marker>
+          </defs>
+          <rect x="30" y="60" width="230" height="60" rx="6" fill="none" stroke="currentColor" />
+          <text x="145" y="85" text-anchor="middle" font-size="11">push / tag event</text>
+          <text x="145" y="102" text-anchor="middle" font-size="9.5" opacity="0.75">on GitHub's servers</text>
 
-          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">CHOSEN — dedicated ghrunner</text>
-          <rect x="480" y="45" width="360" height="100" rx="6" fill="none" stroke="var(--accent)" />
-          <text x="660" y="70" text-anchor="middle" font-size="10.5" fill="var(--accent)">groups: ghrunner, docker, katlego*</text>
-          <text x="660" y="90" text-anchor="middle" font-size="9.5" fill="var(--accent)">no sudo, no login shell</text>
-          <text x="660" y="108" text-anchor="middle" font-size="9.5" fill="var(--accent)">*katlego group added only to bridge</text>
-          <text x="660" y="124" text-anchor="middle" font-size="9.5" fill="var(--accent)">write access to the deploy directory</text>
+          <line x1="260" y1="90" x2="330" y2="90" stroke="currentColor" marker-end="url(#gh-arrow)" />
+
+          <rect x="330" y="60" width="230" height="60" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="445" y="85" text-anchor="middle" font-size="11" fill="var(--accent)">job</text>
+          <text x="445" y="102" text-anchor="middle" font-size="9.5" fill="var(--accent)">resolved, queued, waiting</text>
+
+          <line x1="560" y1="90" x2="630" y2="90" stroke="var(--accent)" marker-end="url(#gh-arrow-accent)" />
+          <text x="595" y="78" text-anchor="middle" font-size="9" fill="var(--accent)">polls</text>
+
+          <rect x="630" y="60" width="160" height="60" rx="6" fill="none" stroke="currentColor" />
+          <text x="710" y="85" text-anchor="middle" font-size="11">runner</text>
+          <text x="710" y="102" text-anchor="middle" font-size="9.5" opacity="0.75">on clubuntu</text>
+
+          <text x="410" y="155" text-anchor="middle" font-size="9.5" opacity="0.7">this whole document is about building and installing that last box</text>
         </svg>
       </div>
-      <figcaption>The blast radius of anything a queued job does is now "can control Docker, can write to one specific directory" — not "can do anything katlego can, including sudo."</figcaption>
+      <figcaption>Everything downloaded, configured, and installed below exists to make that rightmost box a real, permanently-running thing.</figcaption>
     </figure>
   </section>
 
   <section class="wide">
-    <div class="section-head"><span class="section-num">02</span><h2>What the runner actually is, on disk</h2></div>
-    <p>Not a system service that already exists — a plain directory of files, downloaded once, that GitHub's Actions backend and a small local agent both know how to talk to.</p>
-    <figure>
-      <div class="diagram-frame">
-        <svg viewBox="0 0 780 260" role="img" aria-label="The runner install directory at /opt/actions-runner contains the agent binaries, a config file recording which repo and labels it registered under, a work folder where job checkouts happen, and svc.sh which wraps it as a systemd service.">
-          <rect x="30" y="20" width="720" height="220" rx="8" fill="none" stroke="currentColor" stroke-opacity="0.5" />
-          <text x="50" y="42" font-size="11" class="lbl-display">/opt/actions-runner  (home of ghrunner)</text>
-
-          <rect x="55" y="60" width="320" height="50" rx="4" fill="none" stroke="currentColor" />
-          <text x="215" y="80" text-anchor="middle" font-size="10.5">bin/, externals/</text>
-          <text x="215" y="97" text-anchor="middle" font-size="9.5" opacity="0.75">the agent software itself</text>
-
-          <rect x="405" y="60" width="320" height="50" rx="4" fill="none" stroke="var(--accent)" />
-          <text x="565" y="80" text-anchor="middle" font-size="10.5" fill="var(--accent)">.runner, .credentials</text>
-          <text x="565" y="97" text-anchor="middle" font-size="9.5" fill="var(--accent)">which repo, which labels, registered identity</text>
-
-          <rect x="55" y="130" width="320" height="50" rx="4" fill="none" stroke="currentColor" />
-          <text x="215" y="150" text-anchor="middle" font-size="10.5">_work/</text>
-          <text x="215" y="167" text-anchor="middle" font-size="9.5" opacity="0.75">fresh checkout, per job — disposable</text>
-
-          <rect x="405" y="130" width="320" height="50" rx="4" fill="none" stroke="currentColor">
-          </rect>
-          <text x="565" y="150" text-anchor="middle" font-size="10.5">svc.sh</text>
-          <text x="565" y="167" text-anchor="middle" font-size="9.5" opacity="0.75">installs/starts it as a systemd service</text>
-
-          <text x="400" y="205" text-anchor="middle" font-size="9.5" opacity="0.7">once running as a service, it polls GitHub continuously —</text>
-          <text x="400" y="221" text-anchor="middle" font-size="9.5" opacity="0.7">the same poll-not-push behavior documented in the Deployment series</text>
-        </svg>
-      </div>
-      <figcaption><code>.runner</code> is the file that makes label matching work — it's where <code>clubuntu</code> gets recorded as a label this specific install answers to, which is why <code>--labels clubuntu</code> at config time isn't optional.</figcaption>
-    </figure>
+    <div class="section-head"><span class="section-num">01</span><h2>The download commands</h2></div>
+    <p>GitHub's "New self-hosted runner" page generates a download block roughly like this:</p>
+    <div class="code-panel">
+      <pre>mkdir actions-runner && cd actions-runner
+curl -o actions-runner-linux-x64-2.XXX.X.tar.gz -L \
+  https://github.com/actions/runner/releases/download/v2.XXX.X/actions-runner-linux-x64-2.XXX.X.tar.gz
+tar xzf ./actions-runner-linux-x64-2.XXX.X.tar.gz</pre>
+    </div>
+    <ul class="punchlist">
+      <li><code>mkdir actions-runner &amp;&amp; cd actions-runner</code> — creates a fresh subdirectory and enters it. This is the line that caused a real problem later (§07) — run from inside a directory <em>already</em> named <code>actions-runner</code>, it nests one level too deep.</li>
+      <li><code>curl -o ... -L https://github.com/actions/runner/releases/...</code> — downloads the actual runner agent: a self-contained package with the Runner.Listener and Runner.Worker binaries, a bundled Node.js (for helper scripts), and supporting files. <code>-L</code> follows redirects, since release assets are typically served from a CDN, not the URL you request directly.</li>
+      <li><code>tar xzf ...</code> — extracts the tarball into the current directory: <code>bin/</code>, <code>externals/</code>, <code>run.sh</code>, <code>config.sh</code>, <code>svc.sh</code>, and more.</li>
+    </ul>
+    <p>Nothing here talks to <code>kat-e8/manpage</code> yet — this stage only unpacks generic runner software. It doesn't know which repo it belongs to until configure runs.</p>
   </section>
 
   <section class="wide">
-    <div class="section-head"><span class="section-num">03</span><h2>The four phases</h2></div>
+    <div class="section-head"><span class="section-num">02</span><h2>The configure command</h2></div>
     <div class="code-panel">
-      <div class="code-panel-label">Phase 1 — user, docker access, bridge to the deploy directory</div>
-      <pre>sudo useradd --system --create-home --home-dir /opt/actions-runner --shell /usr/sbin/nologin ghrunner
-sudo usermod -aG docker ghrunner
-sudo usermod -aG katlego ghrunner
-sudo chmod -R g+rwX /opt/docker/manpage
-sudo chmod g+s /opt/docker/manpage /opt/docker/manpage/db</pre>
+      <pre>./config.sh --url https://github.com/kat-e8/manpage --token &lt;TOKEN&gt; \
+  --name clubuntu --labels clubuntu --unattended --replace</pre>
     </div>
-    <div class="code-panel">
-      <div class="code-panel-label">Phase 3 — configure, as ghrunner, with the required label</div>
-      <pre>sudo -u ghrunner -i
-cd /opt/actions-runner
-# GitHub's download + extract commands go here, unmodified
-./config.sh --url https://github.com/kat-e8/manpage --token &lt;TOKEN&gt; \
-  --name clubuntu <span class="added">--labels clubuntu</span> --unattended
-exit</pre>
-    </div>
-    <div class="code-panel">
-      <div class="code-panel-label">Phase 4 — install as a systemd service</div>
-      <pre>cd /opt/actions-runner
-sudo ./svc.sh install ghrunner
-sudo ./svc.sh start
-sudo ./svc.sh status</pre>
-    </div>
-    <p>Phase 2 — generating the registration token — happens entirely in GitHub's web UI (repo Settings → Actions → Runners → New self-hosted runner) and isn't a command to log.</p>
-  </section>
-
-  <section>
-    <div class="section-head"><span class="section-num">04</span><h2>Status</h2></div>
+    <p><code>config.sh</code> is what actually contacts GitHub and turns generic runner software into <em>this specific, identified</em> runner. It exchanges the short-lived registration token for long-lived credentials, then writes two files that matter most: <code>.runner</code> (metadata — id, name, the labels it answers to) and <code>.credentials</code> / <code>.credentials_rsaparams</code> (an RSA keypair used for all future polling — the one-hour token from GitHub's UI is spent the moment this succeeds; from then on, this keypair is what proves identity).</p>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Phase</th><th>Status</th></tr></thead>
+        <thead><tr><th>Flag</th><th>What it does</th></tr></thead>
         <tbody>
-          <tr><td>1 — user + permissions</td><td class="status-pending">pending confirmation</td></tr>
-          <tr><td>2 — registration token</td><td class="status-pending">pending confirmation</td></tr>
-          <tr><td>3 — configure with label</td><td class="status-pending">pending confirmation</td></tr>
-          <tr><td>4 — systemd service</td><td class="status-pending">pending confirmation</td></tr>
+          <tr><td><code>--url</code></td><td>Which repository this runner attaches to</td></tr>
+          <tr><td><code>--token</code></td><td>One-time registration token from GitHub's UI, valid ~1 hour, spent on success</td></tr>
+          <tr><td><code>--name clubuntu</code></td><td>Display name in the repo's Runners list — must be unique per repo</td></tr>
+          <tr><td><code>--labels clubuntu</code></td><td>Custom label added on top of the automatic <code>self-hosted</code>/<code>Linux</code>/<code>X64</code> ones — this is what <code>runs-on: [self-hosted, clubuntu]</code> actually matches against. Not optional; without it the workflows would never find this runner.</td></tr>
+          <tr><td><code>--unattended</code></td><td>Skip interactive prompts, use the flags given instead of asking</td></tr>
+          <tr><td><code>--replace</code></td><td>If a runner is already registered under this name, take over the registration instead of erroring — needed in §07 when a stale registration was left behind</td></tr>
         </tbody>
       </table>
     </div>
-    <p>This section gets replaced with actual verification output once each phase is confirmed — the same pattern as every other execution-log entry in this folder.</p>
   </section>
 
-  <footer>git-docs — 8 · host: clubuntu.dala-cirius.ts.net · in progress</footer>
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>The docker group — and a name collision worth clearing up</h2></div>
+    <p><code>usermod -aG docker ghrunner</code> adds <code>ghrunner</code> to the Unix <code>docker</code> group. The Docker daemon listens on <code>/var/run/docker.sock</code>, a socket owned by <code>root:docker</code> — group membership is what lets a non-root user run <code>docker compose build/push/pull/up</code> without <code>sudo</code> on every single command. It's also, by the same token, effectively root-equivalent: anything that can talk to the Docker daemon can mount the host filesystem into a container it creates. Worth knowing, not a flaw specific to this setup.</p>
+    <p>Separately — GitHub Actions has its own feature that's also called "runner groups," used at organization/enterprise level to control which repos can use which runners. This document never touches that feature; it's a Unix group, unrelated, that just happens to share a name with a different GitHub concept.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 780 170" role="img" aria-label="ghrunner joins the docker Unix group, which grants access to the Docker socket without needing sudo for every command. This is a completely different concept from GitHub Actions' own organization-level runner groups feature, which this setup does not use.">
+          <rect x="30" y="30" width="330" height="110" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="195" y="55" text-anchor="middle" font-size="11" fill="var(--accent)">Unix docker group</text>
+          <text x="195" y="78" text-anchor="middle" font-size="9.5" fill="var(--accent)">ghrunner is a member</text>
+          <text x="195" y="96" text-anchor="middle" font-size="9.5" fill="var(--accent)">→ can read/write /var/run/docker.sock</text>
+          <text x="195" y="114" text-anchor="middle" font-size="9.5" fill="var(--accent)">→ this is what's actually used here</text>
+
+          <rect x="420" y="30" width="330" height="110" rx="6" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-dasharray="3 3" />
+          <text x="585" y="55" text-anchor="middle" font-size="11" opacity="0.75">GitHub "runner groups"</text>
+          <text x="585" y="78" text-anchor="middle" font-size="9.5" opacity="0.7">org/enterprise access control</text>
+          <text x="585" y="96" text-anchor="middle" font-size="9.5" opacity="0.7">which repos can use which runners</text>
+          <text x="585" y="114" text-anchor="middle" font-size="9.5" opacity="0.7">→ not used anywhere in this setup</text>
+        </svg>
+      </div>
+      <figcaption>Same words, two unrelated systems — worth keeping straight since both are genuinely called "runner groups" in casual conversation.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>What svc.sh actually is</h2></div>
+    <p><code>svc.sh</code> is bundled inside the downloaded tarball — it's not a separate GitHub tool. Its job is narrow: wrap the raw runner process as a systemd service, so it survives disconnects and reboots instead of dying the moment a terminal closes.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Subcommand</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>install &lt;user&gt;</code></td><td>Generates <code>/etc/systemd/system/actions.runner.&lt;org-repo&gt;.&lt;name&gt;.service</code>, with <code>User=</code> set to the given account and <code>WorkingDirectory=</code>/<code>ExecStart=</code> pointing at this exact install path. Enables it (starts on boot).</td></tr>
+          <tr><td><code>start</code></td><td>Equivalent to <code>systemctl start</code> on the generated unit</td></tr>
+          <tr><td><code>status</code></td><td>Wraps <code>systemctl status</code> for the same unit</td></tr>
+          <tr><td><code>uninstall</code></td><td>Removes the unit file, disables the service</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 780 170" role="img" aria-label="Running run.sh directly ties the runner process to the terminal that launched it -- it dies on disconnect. svc.sh installs the same process as a systemd service instead, so it keeps running independently and restarts on reboot.">
+          <text x="195" y="25" text-anchor="middle" font-size="11" letter-spacing="1">./run.sh directly</text>
+          <rect x="30" y="45" width="330" height="80" rx="6" fill="none" stroke="currentColor" />
+          <text x="195" y="72" text-anchor="middle" font-size="10.5">tied to the terminal that launched it</text>
+          <text x="195" y="92" text-anchor="middle" font-size="9.5" opacity="0.75">closes / disconnects → runner dies</text>
+
+          <text x="585" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">svc.sh install + start</text>
+          <rect x="420" y="45" width="330" height="80" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="585" y="72" text-anchor="middle" font-size="10.5" fill="var(--accent)">runs as a systemd service</text>
+          <text x="585" y="92" text-anchor="middle" font-size="9.5" fill="var(--accent)">survives logout, disconnects, reboots</text>
+        </svg>
+      </div>
+      <figcaption>Both start the exact same underlying agent — only how it's supervised differs. This is why phase 4 exists at all, separate from phase 3.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>Phase 1, what happened</h2></div>
+    <p>Ran cleanly, exactly as planned — verified afterward via <code>getent passwd ghrunner</code> and <code>stat /opt/actions-runner</code>: the account existed with the correct home directory, correct group memberships, and the deploy directory's permissions were correctly bridged.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">06</span><h2>Phase 2, what happened</h2></div>
+    <p>Straightforward — GitHub's UI generated a registration token. No command to log; the only artifact is the token itself, used once in phase 3 and never reused.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">07</span><h2>Phase 3, what actually happened</h2></div>
+    <p><code>sudo -u ghrunner -i</code> was the first thing tried — and it silently failed to do what was intended. <code>ghrunner</code>'s shell is <code>/usr/sbin/nologin</code> (set deliberately in phase 1, to block any interactive login as that account) — and <code>-i</code> specifically asks sudo to launch <em>the target user's own configured shell</em> as a login shell. <code>nologin</code> refuses. The download and configure commands ended up running as the invoking user instead, from whatever directory that session happened to be in (<code>/opt/docker/manpage</code>, left over from the <code>.env</code> work) — creating a misplaced <code>/opt/docker/manpage/actions-runner/</code> rather than anything inside <code>/opt/actions-runner</code>.</p>
+    <p>That registration was real, though — running <code>./run.sh</code> manually confirmed a genuine "Listening for jobs" state, proving the token and configure step had actually succeeded against GitHub, just in the wrong location on disk.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 150" role="img" aria-label="sudo dash u ghrunner dash i failed because ghrunner's shell is nologin. The download and configure commands ran as the invoking user instead, from the wrong directory, landing the install inside the deploy directory rather than ghrunner's home.">
+          <defs>
+            <marker id="p3-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="20" y="45" width="220" height="55" rx="6" fill="none" stroke="currentColor" />
+          <text x="130" y="68" text-anchor="middle" font-size="10">sudo -u ghrunner -i</text>
+          <text x="130" y="85" text-anchor="middle" font-size="9" opacity="0.7">✗ blocked — nologin shell</text>
+
+          <line x1="240" y1="72" x2="330" y2="72" stroke="currentColor" marker-end="url(#p3-arrow)" />
+
+          <rect x="330" y="45" width="240" height="55" rx="6" fill="none" stroke="currentColor" />
+          <text x="450" y="68" text-anchor="middle" font-size="10">ran as invoking user instead</text>
+          <text x="450" y="85" text-anchor="middle" font-size="9" opacity="0.7">still in /opt/docker/manpage</text>
+
+          <line x1="570" y1="72" x2="660" y2="72" stroke="currentColor" marker-end="url(#p3-arrow)" />
+
+          <rect x="660" y="45" width="220" height="55" rx="6" fill="none" stroke="currentColor" />
+          <text x="770" y="68" text-anchor="middle" font-size="10">/opt/docker/manpage/</text>
+          <text x="770" y="85" text-anchor="middle" font-size="9" opacity="0.7">actions-runner/ — wrong place</text>
+        </svg>
+      </div>
+      <figcaption>Registration with GitHub genuinely succeeded here — the flaw was purely about where on disk it landed, discovered only in phase 4.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">08</span><h2>Phase 4, what actually happened</h2></div>
+    <p>The first <code>svc.sh install ghrunner &amp;&amp; svc.sh start</code> appeared to succeed, but <code>systemctl status</code> showed <code>inactive (dead)</code> after only 52 seconds — exited cleanly (status 0), not crashed. The likely cause: <code>.credentials</code> had been created by the invoking user in phase 3, not <code>ghrunner</code>; when the service was configured to run <em>as</em> <code>ghrunner</code>, it couldn't read its own credential files and gave up quietly.</p>
+    <p>Correcting this meant unregistering, deleting the misplaced directory, and redoing phases 3–4 properly — which surfaced three more small obstacles in sequence, each with its own real cause:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Obstacle</th><th>Actual cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td><code>sudo -u ghrunner -i</code> again</td><td>Same nologin block as phase 3</td><td><code>sudo -u ghrunner bash</code> — names a shell explicitly instead of asking sudo to resolve the account's own (blocked) one</td></tr>
+          <tr><td>GitHub's own <code>mkdir actions-runner</code></td><td>Run from inside a directory already named <code>actions-runner</code> (ghrunner's home), nesting one level deep</td><td><code>shopt -s dotglob; mv .../actions-runner/* ...; rmdir ...</code> — flatten, including hidden <code>.runner</code>/<code>.credentials</code></td></tr>
+          <tr><td>"runner exists with the same name clubuntu"</td><td>The phase-3 registration was likely never cleanly removed (its own removal command also used the blocked <code>-u ghrunner -i</code>)</td><td><code>--replace</code> on <code>config.sh</code> — safely takes over the existing name</td></tr>
+          <tr><td><code>cd /opt/actions-runner</code> as katlego</td><td>Correct, intentional — that directory is <code>0750 ghrunner:ghrunner</code>, and katlego was never bridged into <em>that</em> group (only the reverse)</td><td><code>sudo -i</code> — a root shell bypasses the permission wall entirely</td></tr>
+          <tr><td><code>sudo cd ...</code> → command not found</td><td><code>cd</code> is a shell builtin, not an executable — there's nothing for <code>sudo</code> to run</td><td>Not something to fix, just to know — became moot once already root via <code>sudo -i</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>With the directory flattened and a clean registration owned entirely by <code>ghrunner</code>, <code>svc.sh install ghrunner &amp;&amp; svc.sh start</code> produced a genuinely persistent service this time.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">09</span><h2>Every command run on clubuntu, in order</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Command</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>useradd --system --create-home --home-dir /opt/actions-runner --shell /usr/sbin/nologin ghrunner</code></td><td>Dedicated, non-login account for the runner</td></tr>
+          <tr><td>2</td><td><code>usermod -aG docker ghrunner</code></td><td>Lets it drive the Docker daemon</td></tr>
+          <tr><td>3</td><td><code>usermod -aG katlego ghrunner</code></td><td>Bridges write access to <code>/opt/docker/manpage</code></td></tr>
+          <tr><td>4</td><td><code>chmod -R g+rwX /opt/docker/manpage</code> + <code>chmod g+s ...</code></td><td>Group-writable, with new files inheriting the group automatically</td></tr>
+          <tr><td>5</td><td><code>sudo -u ghrunner -i</code> <em>(failed)</em></td><td>Attempted to get a ghrunner shell — blocked by nologin</td></tr>
+          <tr><td>6</td><td>download + <code>config.sh</code> <em>(as wrong user)</em></td><td>Registered successfully, but in the wrong location</td></tr>
+          <tr><td>7</td><td><code>./run.sh</code></td><td>Manually confirmed "Listening for jobs" — proved registration worked</td></tr>
+          <tr><td>8</td><td><code>svc.sh install ghrunner</code> + <code>start</code> <em>(first attempt)</em></td><td>Installed but exited after 52s — credential ownership mismatch</td></tr>
+          <tr><td>9</td><td><code>svc.sh stop</code> + <code>uninstall</code></td><td>Tear down the broken service</td></tr>
+          <tr><td>10</td><td><code>config.sh remove --token ...</code></td><td>Unregister the misplaced runner from GitHub</td></tr>
+          <tr><td>11</td><td><code>rm -rf /opt/docker/manpage/actions-runner</code></td><td>Delete the misplaced install (siblings <code>.env</code>/<code>db/</code>/xlsx untouched)</td></tr>
+          <tr><td>12</td><td><code>sudo -u ghrunner bash</code> + <code>cd /opt/actions-runner</code> + <code>pwd</code></td><td>Correct shell workaround, with a checkpoint before proceeding</td></tr>
+          <tr><td>13</td><td>download + <code>config.sh --replace</code></td><td>Reinstall correctly, taking over the stale name</td></tr>
+          <tr><td>14</td><td><code>sudo -i</code> + <code>cd /opt/actions-runner</code></td><td>Root shell to get past the (correct) permission wall</td></tr>
+          <tr><td>15</td><td><code>ls -la</code></td><td>Diagnosed the nested <code>actions-runner/</code> subdirectory</td></tr>
+          <tr><td>16</td><td><code>shopt -s dotglob; mv ...; rmdir ...</code></td><td>Flattened the structure, including hidden credential files</td></tr>
+          <tr><td>17</td><td><code>svc.sh install ghrunner</code> + <code>start</code> + <code>status</code></td><td>Genuinely persistent this time — confirmed <code>active (running)</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="section-num">10</span><h2>Final verified state</h2></div>
+    <div class="callout" style="font-family: var(--font-mono); font-size: 0.85rem;">
+Active: active (running)<br>
+Main PID: runsvc.sh<br>
+├─ node ./bin/RunnerService.js<br>
+├─ Runner.Listener run --startuptype service<br>
+└─ Runner.Worker spawnclient ... <span class="added">(a job was already executing)</span>
+    </div>
+    <p>The Worker process suggests it picked up the <code>build</code> job that had been queued since the very first push to <code>main</code>, this morning, with no runner yet to claim it.</p>
+  </section>
+
+  <footer>git-docs — 8 · host: clubuntu.dala-cirius.ts.net · service: actions.runner.kat-e8-manpage.clubuntu.service</footer>
 </div>

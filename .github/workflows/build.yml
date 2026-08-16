@@ -11,5 +11,19 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           export IMAGE_TAG=${GITHUB_SHA::7}
+          # docker compose build parses and validates the whole file up front,
+          # even though build never actually starts a container or mounts a
+          # volume. .env doesn't exist in this fresh checkout (correctly --
+          # it's gitignored, lives only on clubuntu), so these need throwaway
+          # non-empty values here purely to satisfy the parser. XLSX_HOST_PATH
+          # specifically must be non-empty, not just present: it's the first
+          # field of sync's bind-mount spec, and an empty field there is a
+          # syntax error, not a blank value like the others.
+          export XLSX_HOST_PATH=/dev/null
+          export POSTGRES_USER=ci
+          export POSTGRES_PASSWORD=ci
+          export POSTGRES_DB=ci
+          export SYNC_POLL_SECONDS=7
+          export GATEWAY_HOST_PORT=8100
           docker compose build
           docker compose push

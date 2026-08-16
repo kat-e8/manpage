@@ -60,7 +60,11 @@ services:
     # changes to one do not propagate to the other.
     build: ./docker-mcp
     image: clubuntu.dala-cirius.ts.net:5000/docker-mcp:${IMAGE_TAG:-dev}
-    container_name: codercommands-docker-mcp
+    # Bare name, deliberately -- unlike sync/postgres/coder-commands-mcp,
+    # this has nothing to do with coder-commands specifically. Verified no
+    # collision with any other container on either the dev laptop or
+    # clubuntu before dropping the prefix.
+    container_name: docker-mcp
     volumes:
       # Docker-outside-of-Docker: this container has no daemon of its own --
       # it drives the *host's* Docker daemon via the CLI baked into the image
@@ -77,12 +81,15 @@ services:
     # crystaldba/postgres-mcp image the ../POSTGRES project runs -- this one
     # supports a per-call connection_uri override (see tools/_scope.py) and
     # defaults to this project's own `postgres` service, so there's no
-    # runtime dependency on ../POSTGRES either. container_name is prefixed
-    # (unlike the compose service name) only to avoid colliding on the
-    # Docker host with ../POSTGRES's own container also named postgres-mcp.
+    # runtime dependency on ../POSTGRES either. container_name keeps a
+    # short manpage- prefix (not codercommands- -- this service has
+    # nothing to do with coder-commands specifically) because the bare
+    # name "postgres-mcp" genuinely collides on this dev laptop with
+    # ../POSTGRES's own unrelated container of that exact name. clubuntu
+    # has no such conflict, but the two compose files are kept identical.
     build: ./postgres-mcp
     image: clubuntu.dala-cirius.ts.net:5000/postgres-mcp:${IMAGE_TAG:-dev}
-    container_name: codercommands-postgres-mcp
+    container_name: manpage-postgres-mcp
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:

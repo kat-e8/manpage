@@ -54,7 +54,7 @@ services:
 
   docker-mcp:
     image: clubuntu.dala-cirius.ts.net:5000/docker-mcp:${IMAGE_TAG}
-    container_name: codercommands-docker-mcp
+    container_name: docker-mcp
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks: [codercommands]
@@ -62,7 +62,7 @@ services:
 
   postgres-mcp:
     image: clubuntu.dala-cirius.ts.net:5000/postgres-mcp:${IMAGE_TAG}
-    container_name: codercommands-postgres-mcp
+    container_name: manpage-postgres-mcp
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:

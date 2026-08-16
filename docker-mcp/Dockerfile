@@ -22,7 +22,7 @@ RUN apt-get update \
 # find them. StrictHostKeyChecking is deliberately "yes": known_hosts is
 # pre-populated from the host's own already-verified entries, not built up
 # via trust-on-first-connect inside the container.
-RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+RUN mkdir -p /root/.ssh/control && chmod 700 /root/.ssh /root/.ssh/control
 COPY ssh_config /root/.ssh/config
 RUN chmod 600 /root/.ssh/config
 

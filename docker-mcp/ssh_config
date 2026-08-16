@@ -6,3 +6,13 @@ Host *
     IdentitiesOnly yes
     UserKnownHostsFile /root/.ssh/known_hosts
     StrictHostKeyChecking yes
+    # python-on-whales issues one `docker` CLI invocation per attribute it
+    # lazily inspects -- list-containers alone does a `docker inspect` per
+    # container returned. Without multiplexing, every one of those pays a
+    # full SSH handshake (measured ~1.2s each), so a 35-container host turns
+    # one tool call into 35+ handshakes. ControlMaster reuses a single
+    # authenticated connection across all of them for the life of one call
+    # (and a little beyond, for back-to-back calls).
+    ControlMaster auto
+    ControlPath /root/.ssh/control/%r@%h:%p
+    ControlPersist 60s

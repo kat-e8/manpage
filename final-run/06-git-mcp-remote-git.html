@@ -1,0 +1,206 @@
+<title>git-mcp: build and verification</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.88rem; font-family: var(--font-mono); }
+  .warn { border-left-color: #C9713D; }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  .status-open { color: var(--ink-soft); font-style: italic; }
+  .status-no { color: #C9713D; font-weight: 600; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">final-run · 6</div>
+    <h1>git-mcp: build and verification</h1>
+    <p class="deck">The third and last of the SSH-reachable MCP servers is live: typed git operations against a repo on any registered tailnet host. Full design rationale lives in <code>git-mcp/design-plan.pdf</code>, reviewed and approved before any code was written; this doc covers what actually happened building and verifying it against real infrastructure -- including two real bugs neither the design nor a local build caught.</p>
+    <div class="meta">
+      <span>tool: 13 typed tools, target + repo_path</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>What shipped</h2></div>
+    <p>13 typed tools, no local default target (every call names a <code>target</code> resolved against a registry), SSH-execute mechanism reusing the docker-mcp playbook exactly: dedicated keypair, reused OS accounts, ControlMaster multiplexing baked in from day one instead of discovered after a latency bug.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Tools</th></tr></thead>
+        <tbody>
+          <tr><td class="status-yes">Read (6)</td><td><code>git_status</code>, <code>git_log</code>, <code>git_diff</code>, <code>git_show</code>, <code>git_branch_list</code>, <code>git_remote_list</code></td></tr>
+          <tr><td class="status-yes">Write (7)</td><td><code>git_add</code>, <code>git_commit</code>, <code>git_fetch</code>, <code>git_pull</code>, <code>git_checkout</code>, <code>git_branch_create</code>, <code>git_push</code></td></tr>
+          <tr><td class="status-no">Excluded</td><td>force-push, <code>reset --hard</code>, <code>clean -f</code>, rebase, <code>commit --amend</code> -- omitted, not gated</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">Live targets: <code>clubuntu</code> (self-loop) and <code>katmint</code>, both POSIX. <code>katlegog</code> (Windows) is deliberately absent from the registry -- gated pending dedicated <code>windows_quote()</code> verification, per the staged-rollout plan.</div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>Implementation, in brief</h2></div>
+    <p>Unlike docker-mcp/postgres-mcp, there was no pre-existing mechanism to discover here -- this was a from-scratch build against an approved plan. The two structural decisions that mattered most: a <strong>target registry</strong> instead of a free-form <code>ssh://</code> string (closes an SSH option-injection edge case, gives a fixed place to record shell dialect), and <strong>two independent defenses</strong> against command injection -- dialect-aware quoting (<code>posix_quote</code>/<code>windows_quote</code>) plus structural validation of ref/branch/remote shape *before* quoting ever runs. Both live in one place each (<code>quoting.py</code>, called only from <code>ssh_executor.py</code>).</p>
+    <p>Verified locally before any push: built the image standalone, ran it, confirmed all 13 tools registered with no import errors and no <code>force</code> parameter anywhere in <code>git_push</code>'s schema. Caught a Windows/Git-Bash path-mangling quirk during that local build (<code>/dev/null</code> silently became <code>nul</code>, which Compose then read as a named-volume reference) -- fixed with <code>MSYS_NO_PATHCONV=1</code>, not a git-mcp bug.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Honest detour: the registry loaded empty</h2></div>
+    <p>First live call after deploying <code>v0.1.5</code>: <code>git_status(target="clubuntu", ...)</code> came back <code>Unknown target 'clubuntu'; known targets: []</code> -- despite <code>GIT_MCP_TARGETS</code> being set correctly, and correctly formatted JSON, in the container's own environment.</p>
+    <p>Root cause: pydantic-settings maps a bare field name to the identically-named env var by default. The field was named <code>targets</code>, so it looked for <code>TARGETS</code> -- never <code>GIT_MCP_TARGETS</code>. The registry silently loaded as an empty dict rather than raising, because an empty dict is a perfectly valid (if useless) value for that field.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 190" role="img" aria-label="Diagram. The GIT_MCP_TARGETS environment variable, correctly set in the container, is looked for by pydantic-settings under the wrong name TARGETS because the field alias was missing. Result: an empty registry, silently, no exception. Fix: an explicit validation_alias pointing the targets field at GIT_MCP_TARGETS by name.">
+          <rect x="20" y="30" width="260" height="60" rx="6" fill="none" stroke="currentColor" />
+          <text x="150" y="55" text-anchor="middle" font-size="10">env: GIT_MCP_TARGETS={...}</text>
+          <text x="150" y="73" text-anchor="middle" font-size="9" opacity="0.7">set correctly in the container</text>
+
+          <line x1="280" y1="60" x2="340" y2="60" stroke="currentColor" stroke-width="1.2" />
+          <text x="310" y="50" text-anchor="middle" font-size="16">✗</text>
+
+          <rect x="340" y="30" width="260" height="60" rx="6" fill="none" stroke="#C9713D" />
+          <text x="470" y="55" text-anchor="middle" font-size="10" fill="#C9713D">field: targets</text>
+          <text x="470" y="73" text-anchor="middle" font-size="9" fill="#C9713D">looks for env var "TARGETS" (wrong)</text>
+
+          <text x="750" y="55" text-anchor="middle" font-size="10" fill="#C9713D">→ {} silently</text>
+          <text x="750" y="73" text-anchor="middle" font-size="9" fill="#C9713D">no exception raised</text>
+
+          <rect x="40" y="130" width="800" height="46" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="440" y="158" text-anchor="middle" font-size="10" fill="var(--accent)">Fix: <tspan font-family="var(--font-mono)">Field(validation_alias="GIT_MCP_TARGETS")</tspan> -- explicit, not inferred</text>
+        </svg>
+      </div>
+      <figcaption>Deployed as v0.1.6. Confirmed via <code>docker exec git-mcp python -c "...settings.targets..."</code> before re-testing the MCP call.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>Proof: real repos, three angles</h2></div>
+    <p>This session's Claude Code tool cache didn't know about the newly-registered <code>git</code> MCP server mid-session -- the same stale-cache situation documented in §04 of the postgres-mcp doc. Verification continued via direct MCP protocol calls (manual initialize handshake, session ID, <code>tools/call</code>) instead of waiting for a fresh session.</p>
+    <div class="code-panel">
+      <div class="code-panel-label">git_status(target="clubuntu", repo_path="/opt/docker/manpage")</div>
+      <pre>On branch main
+Changes not staged for commit:
+	modified:   ../homepage/config/services.yaml
+Untracked files:
+	../caddy/  ../core/  ../dbs/  ...</pre>
+    </div>
+    <p>Real output, real repo -- and it revealed something about clubuntu's own layout worth knowing: <code>/opt/docker/manpage</code>'s <code>.git</code> root actually covers the whole <code>/opt/docker/</code> tree (every docker project on that host shares one parent repo), not something git-mcp caused, just something git-mcp's honesty surfaced.</p>
+    <div class="code-panel">
+      <div class="code-panel-label">git_log(target="katmint", repo_path=".../work") -- scratch repo</div>
+      <pre>4f76830 (HEAD -> master, origin/main) init</pre>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>Proof: injection defenses, live</h2></div>
+    <p>Not unit tests -- real calls against a disposable scratch repo on katmint, through the full gateway → git-mcp → ssh → git path, with a server-side check afterward for exactly what an attacker would be hoping for.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Attempt</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Commit message: <code>test `id` and $(whoami) and ; rm -rf /tmp/pwned ; echo done</code></td><td class="status-yes">✓ stored as inert literal text in the commit -- confirmed via <code>git log --format=%s</code>; <code>/tmp/pwned</code> never created</td></tr>
+          <tr><td>Branch name: <code>--upload-pack=touch /tmp/pwned2</code></td><td class="status-yes">✓ rejected by <code>validate_ref_name</code> before reaching the shell: <em>"must not start with '-'"</em>; <code>/tmp/pwned2</code> never created</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Both defenses -- dialect-aware quoting for the first, structural pre-validation for the second -- did exactly what §03 of the design plan said they would, against a live attempt, not a hypothetical one.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>Honest detour: 138.5MB from one diff</h2></div>
+    <p>Rounding out read-tool coverage, <code>git_diff(target="clubuntu", repo_path="/opt/docker/manpage")</code> -- no arguments beyond the required two -- came back <strong>138.5MB</strong>. That parent repo (see §03) tracks a log file that had grown to 1.6M lines. Nothing in <code>ssh_executor.py</code> bounded output size; a caller-supplied <code>repo_path</code>/<code>ref</code> can hit arbitrarily large real content, and this wasn't a hypothetical, it happened on the first real-repo diff call.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 170" role="img" aria-label="Before and after diagram. Before: git_diff output flows straight from the ssh subprocess to the MCP response with no size limit, and one real call returned 138.5 megabytes. After: each stream, stdout and stderr, is capped independently at 200 kilobytes with a truncation marker appended, verified against the same real call which then returned 424 kilobytes with the marker present.">
+          <text x="220" y="24" text-anchor="middle" font-size="11" letter-spacing="1">BEFORE</text>
+          <rect x="40" y="42" width="360" height="60" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="66" text-anchor="middle" font-size="10">stdout/stderr → decode() → MCP response</text>
+          <text x="220" y="86" text-anchor="middle" font-size="9.5" opacity="0.75">no size limit -- real call returned 138.5MB</text>
+
+          <text x="660" y="24" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">AFTER</text>
+          <rect x="480" y="42" width="360" height="60" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="66" text-anchor="middle" font-size="10" fill="var(--accent)">stdout/stderr → _decode_capped() → MCP response</text>
+          <text x="660" y="86" text-anchor="middle" font-size="9.5" fill="var(--accent)">200KB cap per stream + truncation marker</text>
+
+          <text x="440" y="140" text-anchor="middle" font-size="10">Same real call, re-run after the fix: 424KB, marker present.</text>
+          <text x="440" y="158" text-anchor="middle" font-size="10" font-family="var(--font-mono)">"... [truncated, 67964716 more bytes omitted]"</text>
+        </svg>
+      </div>
+      <figcaption>Deployed as v0.1.7. The cap bounds the response returned to the MCP client; it does not bound subprocess memory during <code>communicate()</code> itself, which still buffers the full output before this function sees it -- an explicitly flagged, not silently ignored, limitation.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">06</span><h2>Deploy history</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tag</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td><code>v0.1.5</code></td><td>Initial git-mcp: 13 tools, SSH-execute, target registry, two-layer injection defense</td></tr>
+          <tr><td><code>v0.1.6</code></td><td>Fix: target registry silently loaded empty (§02)</td></tr>
+          <tr><td><code>v0.1.7</code></td><td>Fix: unbounded output size, found via a real 138.5MB response (§05)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Both fixes were found by testing against real, live infrastructure after deploy -- neither surfaced in the local build-and-smoke-test pass, and neither was anticipated in the design plan. That gap between "builds and imports cleanly" and "behaves correctly against real data and a real registry" is exactly why the verification plan called for live testing rather than stopping at a clean build.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">07</span><h2>Where this leaves things</h2></div>
+    <ul class="punchlist">
+      <li>All three SSH-reachable MCP servers (docker-mcp, postgres-mcp's connection_uri path, git-mcp) are now deployed, proven against real infrastructure, and documented.</li>
+      <li><code>katlegog</code> stays out of <code>GIT_MCP_TARGETS</code> until <code>windows_quote()</code> gets its own dedicated verification pass against real cmd.exe metacharacters -- the one piece of the original design plan deliberately not exercised yet.</li>
+      <li>A fourth target host (or a fourth MCP server) now has two proven templates to follow: docker-mcp's for SSH-executed tools in general, and this doc's two detours as a reminder that "builds clean" and "correct under real registry/data conditions" are different bars.</li>
+    </ul>
+  </section>
+
+  <footer>final-run — 6 · git-mcp: 13 tools, 2 targets live, 2 real bugs found and fixed against production, 0 force operations anywhere</footer>
+</div>

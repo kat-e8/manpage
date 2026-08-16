@@ -1,0 +1,183 @@
+<title>Redirecting postgres-mcp</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  .added { color: var(--accent); }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.88rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  .status-open { color: var(--ink-soft); font-style: italic; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">final-run · 4</div>
+    <h1>Redirecting postgres-mcp</h1>
+    <p class="deck">The cloud gateway on clubuntu can now reach into this laptop's own Postgres, per call, given a host and credentials — the first of the two MCP servers meant to be pointable at any machine.</p>
+    <div class="meta">
+      <span>tool: run_query, connection_uri override</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>The objective, restated</h2></div>
+    <p><code>docker-mcp</code> and <code>postgres-mcp</code> were both built with a per-call target override from the start — <code>docker_host</code> for the former, <code>connection_uri</code> for the latter — so one centrally-hosted gateway could reach any Docker daemon or Postgres database, not just the one it happens to run next to. <code>postgres-mcp</code> goes first here because it's the simpler of the two: a database connection string versus an SSH-authenticated remote Docker socket.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>What was already true</h2></div>
+    <p>Checking the source before changing anything: every one of <code>postgres-mcp</code>'s four tools — <code>list_schemas</code>, <code>list_tables</code>, <code>describe_table</code>, <code>run_query</code> — already accepts an optional <code>connection_uri</code>. When it's given, <code>tools/_scope.py</code>'s <code>scoped_query()</code> opens a single throwaway <code>asyncpg</code> connection to that exact DSN and closes it when the call ends, leaving the server's own default connection pool untouched. The application code needed <em>zero</em> changes — this had already been built.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>The actual gap: nothing to connect to</h2></div>
+    <p><code>docker-compose.yml</code>'s <code>postgres</code> service had no <code>ports:</code> entry at all — not published to the host, let alone the tailnet. A <code>connection_uri</code> pointed at this laptop from clubuntu would have had nothing to reach.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 200" role="img" aria-label="Before: this laptop's postgres container is only reachable inside its own Docker compose network, with no port published to the host at all. After: the same container publishes port 5433, bound specifically to the laptop's Tailscale IP, so clubuntu's postgres-mcp can reach it over the tailnet while it stays closed to the LAN and the open internet.">
+          <text x="220" y="24" text-anchor="middle" font-size="11" letter-spacing="1">BEFORE</text>
+          <rect x="40" y="42" width="360" height="70" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="68" text-anchor="middle" font-size="10">postgres container</text>
+          <text x="220" y="88" text-anchor="middle" font-size="9.5" opacity="0.75">reachable only inside codercommands-net</text>
+
+          <text x="660" y="24" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">AFTER</text>
+          <rect x="480" y="42" width="360" height="70" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="65" text-anchor="middle" font-size="10" fill="var(--accent)" font-family="var(--font-mono)">100.127.101.48:5433 → :5432</text>
+          <text x="660" y="85" text-anchor="middle" font-size="9.5" fill="var(--accent)">bound to the Tailscale IP only</text>
+
+          <text x="440" y="145" text-anchor="middle" font-size="10">not 0.0.0.0 — that would expose it to the whole LAN,</text>
+          <text x="440" y="165" text-anchor="middle" font-size="10">not just clubuntu over the tailnet</text>
+        </svg>
+      </div>
+      <figcaption>The default in <code>.env.example</code> stays <code>127.0.0.1</code> — a clone of this repo is closed by default until someone deliberately sets their own Tailscale IP.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>Implementation</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td><code>docker-compose.yml</code></td><td><code>postgres</code> now publishes <code>${POSTGRES_TAILNET_BIND:-127.0.0.1}:${POSTGRES_HOST_PORT:-5433}:5432</code></td></tr>
+          <tr><td><code>.env</code> (local, not tracked)</td><td><code>POSTGRES_TAILNET_BIND=100.127.101.48</code>, <code>POSTGRES_HOST_PORT=5433</code></td></tr>
+          <tr><td><code>.env.example</code></td><td>documents both variables, defaulting to loopback so a fresh clone stays closed</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Port <code>5433</code>, not <code>5432</code> — this laptop already runs an unrelated Postgres container from the separate <code>../POSTGRES</code> project on the default port.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>An honest detour: the stale tool cache</h2></div>
+    <p>Testing this the obvious way — calling the registered <code>postgres</code> MCP tool directly — produced a tool list that didn't match the source at all: zero-parameter <code>list_schemas</code>, plus tool names like <code>execute_sql</code> and <code>analyze_db_health</code> that belong to the third-party <code>crystaldba/postgres-mcp</code> package, not this project's own four tools. That was worth stopping for rather than trusting.</p>
+    <p>Checked directly on clubuntu: <code>pip show postgres-mcp</code> inside the running container confirmed <code>Version: 0.1.0</code>, <em>"MCP server for ad-hoc Postgres access, with a per-call connection_uri override"</em> — this project's own package, correctly deployed. The mismatch was local: this session's cached MCP tool list for <code>postgres</code> was left over from before the mid-session registration swap and had never refreshed. Verification continued with direct MCP protocol calls over HTTP instead of the stale cached tool — a fresh Claude Code session picks up the real one.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>Proof: two different databases</h2></div>
+    <p>The same query, run twice through the same cloud <code>postgres-mcp</code> — once with <code>connection_uri</code> set, once without:</p>
+    <div class="code-panel">
+      <div class="code-panel-label">SELECT inet_server_addr()::text, (SELECT count(*) FROM sync_runs)</div>
+      <pre>run_query(connection_uri="postgresql://...@100.127.101.48:5433/codercommands")
+  → server_ip: 172.28.0.2   sync_runs: 10
+
+run_query()   -- no override, clubuntu's own default
+  → server_ip: 192.168.96.3   sync_runs: 5</pre>
+    </div>
+    <p>Different internal Docker network addresses, different row counts — genuinely two separate databases on two separate machines, both reached through the exact same tool call, distinguished only by one parameter.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Check</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Raw TCP reachability, clubuntu → laptop:5433</td><td class="status-yes">✓ connected over Tailscale</td></tr>
+          <tr><td><code>list_schemas</code> via override</td><td class="status-yes">✓ returned this laptop's real schemas</td></tr>
+          <tr><td><code>run_query</code> via override vs. default</td><td class="status-yes">✓ two distinct server IPs, two distinct row counts</td></tr>
+          <tr><td>Port closed to LAN/internet, tailnet-only</td><td class="status-yes">✓ bound to <code>100.127.101.48</code>, not <code>0.0.0.0</code></td></tr>
+          <tr><td>Application code changes required</td><td class="status-open">none — already built</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">06</span><h2>Live usage, in practice</h2></div>
+    <p>Beyond the internal-IP comparison in §05, the same override was exercised the ordinary way — the exact shape a real caller uses. Every tool takes <code>connection_uri</code> as one more argument alongside whatever else it needs; nothing else about the call changes.</p>
+    <div class="code-panel">
+      <div class="code-panel-label">connection_uri format</div>
+      <pre>postgresql://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;:&lt;port&gt;/&lt;database&gt;
+
+# pointed at this laptop specifically:
+postgresql://codercommands:&lt;password&gt;@100.127.101.48:5433/codercommands</pre>
+    </div>
+    <p><code>list_tables</code>, called with that URI, returned this laptop's real schema — not clubuntu's:</p>
+    <div class="callout">list_tables(connection_uri=...) → commands, sync_runs</div>
+    <p><code>run_query</code>, same URI, pulled this laptop's actual sync history — matching exactly what the local <code>sync</code> container has been doing:</p>
+    <div class="code-panel">
+      <div class="code-panel-label">SELECT id, status, started_at FROM sync_runs ORDER BY id DESC LIMIT 5</div>
+      <pre>id=10  success  2026-08-16T16:17:59Z
+id=9   success  2026-08-15T21:52:48Z
+id=8   success  2026-08-15T21:35:51Z
+id=7   success  2026-08-15T20:36:49Z
+id=6   success  2026-08-15T14:36:27Z</pre>
+    </div>
+    <p>Both calls went through the same path as §05: this laptop's Claude Code → cloud gateway on clubuntu → <code>postgres-mcp</code> → back out over Tailscale to <code>100.127.101.48:5433</code>. The only thing distinguishing "reach clubuntu's own database" from "reach this laptop's" was the presence of one argument.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">07</span><h2>What's next</h2></div>
+    <p><code>docker-mcp</code> is the harder half of this objective — its override is an SSH-authenticated <code>docker_host=ssh://...</code> URL, and the container currently has no SSH client or private key installed to make that connection with. That's deliberately deferred to its own doc.</p>
+  </section>
+
+  <footer>final-run — 4 · postgres-mcp redirect proven end to end over Tailscale</footer>
+</div>

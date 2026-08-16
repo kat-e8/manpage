@@ -1,0 +1,298 @@
+<title>docker-mcp remote engines</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  .added { color: var(--accent); }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.88rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  .status-open { color: var(--ink-soft); font-style: italic; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">final-run · 5</div>
+    <h1>docker-mcp remote engines</h1>
+    <p class="deck">The harder half of the pair promised in §07 of the previous doc: docker-mcp on clubuntu can now reach into Docker engines on other tailnet machines, per call, over SSH — the second and last of the two MCP servers meant to be pointable at any host.</p>
+    <div class="meta">
+      <span>tool: list-containers, docker_host override</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>The shape of it</h2></div>
+    <p>One <code>docker-mcp</code> server, running on clubuntu, now answers for three different Docker engines depending on one argument.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 260" role="img" aria-label="Topology diagram. docker-mcp, running on clubuntu, fans out to three Docker engines: clubuntu's own engine when no docker_host override is given, katmint's engine via ssh://katlego@katmint.dala-cirius.ts.net, and katlegog's engine via ssh://docker-mcp-svc@katlegog.dala-cirius.ts.net.">
+          <defs>
+            <marker id="arrow00" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="30" y="100" width="210" height="64" rx="6" fill="none" stroke="currentColor" />
+          <text x="135" y="126" text-anchor="middle" font-size="10.5">docker-mcp</text>
+          <text x="135" y="144" text-anchor="middle" font-size="9.5" opacity="0.75">container on clubuntu</text>
+
+          <line x1="240" y1="120" x2="420" y2="40" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrow00)" />
+          <line x1="240" y1="132" x2="420" y2="132" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#arrow00)" />
+          <line x1="240" y1="144" x2="420" y2="224" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#arrow00)" />
+
+          <rect x="430" y="10" width="420" height="60" rx="6" fill="none" stroke="currentColor" />
+          <text x="640" y="34" text-anchor="middle" font-size="10.5">clubuntu Docker Engine</text>
+          <text x="640" y="52" text-anchor="middle" font-size="9" opacity="0.75" font-family="var(--font-mono)">default — no docker_host override</text>
+
+          <rect x="430" y="102" width="420" height="60" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="640" y="126" text-anchor="middle" font-size="10.5" fill="var(--accent)">katmint Docker Engine</text>
+          <text x="640" y="144" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">ssh://katlego@katmint.dala-cirius.ts.net</text>
+
+          <rect x="430" y="194" width="420" height="60" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="640" y="218" text-anchor="middle" font-size="10.5" fill="var(--accent)">katlegog Docker Engine (Windows)</text>
+          <text x="640" y="236" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">ssh://docker-mcp-svc@katlegog.dala-cirius.ts.net</text>
+        </svg>
+      </div>
+      <figcaption>Same tool, same code path, three destinations — the argument is the only thing that changes.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>What was already true</h2></div>
+    <p>Same shape as the postgres-mcp doc: checking the source before changing anything found the mechanism already built. <code>create-container</code>, <code>deploy-compose</code>, <code>get-logs</code>, and <code>list-containers</code> all already accept an optional <code>docker_host</code> argument. When given, <code>get_docker_client()</code> in <code>handlers.py</code> builds a throwaway <code>python-on-whales</code> <code>DockerClient</code> scoped to that one call instead of reusing the shared default client — deliberately restricted to the <code>ssh://</code> scheme only, so no TLS certificate or key material ever has to pass through a tool argument. Zero application code changes needed here either.</p>
+    <p>The actual gap, same pattern as before: infrastructure. No SSH client in the image, no key or <code>known_hosts</code> to use one with, and no target host credentialed yet.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Credentialing two targets</h2></div>
+    <p>One dedicated ed25519 keypair, generated on clubuntu itself (private half never leaves that machine, never committed), reused across every target host rather than minting one per host.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Target</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td><code>katmint</code></td><td class="status-yes">✓ appended to existing <code>katlego</code> user's <code>authorized_keys</code> — already in the <code>docker</code> group, worked immediately</td></tr>
+          <tr><td><code>katlegog</code> (this laptop, Windows)</td><td class="status-open">needed a detour — see §03</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>An honest detour: Windows admin accounts and SSH</h2></div>
+    <p>The obvious move on katlegog — add the new public key to the existing (admin) Windows account — failed silently. Key exchange completed fine; the connection reset the instant the client sent its first auth request, every time, with no further detail even after cranking <code>sshd</code>'s <code>LogLevel</code> to <code>DEBUG3</code>.</p>
+    <p>Root cause: on Win32-OpenSSH, a connecting account that belongs to the local <code>Administrators</code> group is routed through <code>Match Group administrators</code> to a system-level <code>administrators_authorized_keys</code> file with strict ACL requirements — a well-known source of exactly this kind of silent reset, and this laptop's account is a <em>domain</em> admin, which compounds it further.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 210" role="img" aria-label="Two paths tried on the Windows host. Path one: existing domain-admin account, key added to administrators_authorized_keys, ACL set correctly, connection still reset immediately after auth request, abandoned. Path two: new dedicated local account docker-mcp-svc in the docker-users group, key added to its own per-user authorized_keys, connection succeeded immediately.">
+          <text x="220" y="24" text-anchor="middle" font-size="11" letter-spacing="1">TRIED FIRST</text>
+          <rect x="40" y="42" width="360" height="90" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="66" text-anchor="middle" font-size="10">existing domain-admin account</text>
+          <text x="220" y="84" text-anchor="middle" font-size="9.5" opacity="0.75">administrators_authorized_keys</text>
+          <text x="220" y="102" text-anchor="middle" font-size="9.5" opacity="0.75">connection reset, every time</text>
+
+          <text x="660" y="24" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">WORKED</text>
+          <rect x="480" y="42" width="360" height="90" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="66" text-anchor="middle" font-size="10" fill="var(--accent)">dedicated docker-mcp-svc account</text>
+          <text x="660" y="84" text-anchor="middle" font-size="9.5" fill="var(--accent)">docker-users group, not Administrators</text>
+          <text x="660" y="102" text-anchor="middle" font-size="9.5" fill="var(--accent)">per-user authorized_keys, worked at once</text>
+
+          <text x="440" y="170" text-anchor="middle" font-size="10">Docker Desktop's docker-users group exists specifically so a</text>
+          <text x="440" y="190" text-anchor="middle" font-size="10">non-admin account can run docker without full elevation</text>
+        </svg>
+      </div>
+      <figcaption>Profile directory for the new account doesn't exist until first logon — forced with <code>Start-Process -Credential $cred -LoadUserProfile</code> rather than a real interactive session.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>Implementation</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td><code>docker-mcp/Dockerfile</code></td><td>installs <code>openssh-client</code>; bakes in <code>ssh_config</code>; creates <code>/root/.ssh/control</code> for connection multiplexing (§07)</td></tr>
+          <tr><td><code>docker-mcp/ssh_config</code></td><td><code>IdentityFile</code>, <code>UserKnownHostsFile</code>, <code>StrictHostKeyChecking yes</code> — trust established once on the host running docker-mcp, never accepted from inside the container</td></tr>
+          <tr><td><code>docker-compose.yml</code> / <code>docker-compose.deploy.yml</code></td><td><code>docker-mcp</code> service mounts the private key and clubuntu's own <code>known_hosts</code> read-only, alongside the existing Docker socket mount</td></tr>
+          <tr><td><code>.env.example</code></td><td>documents <code>DOCKER_MCP_SSH_KEY_PATH</code> / <code>DOCKER_MCP_SSH_KNOWN_HOSTS_PATH</code> and the setup steps for adding a future third host</td></tr>
+          <tr><td><code>build.yml</code></td><td>throwaway <code>/dev/null</code> CI values for the two new vars — same reason <code>XLSX_HOST_PATH</code> needed one: they're bind-mount sources, and <code>docker compose build</code> parses the whole file even without running it</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Deployed as <code>v0.1.3</code> via the existing tag-triggered pipeline: push to <code>main</code> builds the image, a <code>v*</code> tag redeploys it on clubuntu.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>Proof: three engines, one tool</h2></div>
+    <p>Confirmed directly on the running container before touching the MCP layer — its mounts now show the key and known_hosts, not just the socket — then exercised the real way, through <code>list-containers</code>, no different from any other tool call except one argument. The full path for the remote case has three hops, not one:</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 400" role="img" aria-label="Sequence diagram for one list-containers call with a docker_host override. Claude Code sends a POST request with an X-API-Key header to the gateway on clubuntu. The gateway forwards the call to docker-mcp. docker-mcp runs a docker command against the ssh colon slash slash target, reusing a multiplexed SSH connection. The remote engine executes docker ps and per-container docker inspect calls and returns the results. The response flows back up through docker-mcp and the gateway to Claude Code.">
+          <text x="90" y="24" text-anchor="middle" font-size="10.5" font-weight="700">Claude Code</text>
+          <text x="330" y="24" text-anchor="middle" font-size="10.5" font-weight="700">Gateway :8100</text>
+          <text x="570" y="24" text-anchor="middle" font-size="10.5" font-weight="700">docker-mcp</text>
+          <text x="810" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--accent)">Remote Engine</text>
+
+          <line x1="90" y1="36" x2="90" y2="380" stroke="var(--line-strong)" stroke-dasharray="3,3" />
+          <line x1="330" y1="36" x2="330" y2="380" stroke="var(--line-strong)" stroke-dasharray="3,3" />
+          <line x1="570" y1="36" x2="570" y2="380" stroke="var(--line-strong)" stroke-dasharray="3,3" />
+          <line x1="810" y1="36" x2="810" y2="380" stroke="var(--line-strong)" stroke-dasharray="3,3" />
+
+          <defs>
+            <marker id="arrow05" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+            <marker id="arrow05a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+            </marker>
+          </defs>
+
+          <line x1="90" y1="62" x2="326" y2="62" stroke="currentColor" stroke-width="1.1" marker-end="url(#arrow05)" />
+          <text x="210" y="54" text-anchor="middle" font-size="9" font-family="var(--font-mono)">POST /docker · X-API-Key</text>
+
+          <line x1="330" y1="90" x2="566" y2="90" stroke="currentColor" stroke-width="1.1" marker-end="url(#arrow05)" />
+          <text x="450" y="82" text-anchor="middle" font-size="9" font-family="var(--font-mono)">list-containers(docker_host=ssh://...)</text>
+
+          <line x1="570" y1="130" x2="806" y2="130" stroke="var(--accent)" stroke-width="1.1" marker-end="url(#arrow05a)" />
+          <text x="690" y="118" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">docker -H ssh://... ps -a</text>
+          <text x="690" y="144" text-anchor="middle" font-size="8.5" fill="var(--accent)" opacity="0.8">(reuses multiplexed connection, ControlMaster)</text>
+
+          <line x1="570" y1="176" x2="806" y2="176" stroke="var(--accent)" stroke-width="1.1" marker-end="url(#arrow05a)" />
+          <text x="690" y="168" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">docker inspect &lt;id&gt;  ×N containers</text>
+
+          <line x1="806" y1="216" x2="574" y2="216" stroke="var(--accent)" stroke-width="1.1" marker-end="url(#arrow05a)" />
+          <text x="690" y="208" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">name, status ×N</text>
+
+          <line x1="566" y1="256" x2="334" y2="256" stroke="currentColor" stroke-width="1.1" marker-end="url(#arrow05)" />
+          <text x="450" y="248" text-anchor="middle" font-size="9" font-family="var(--font-mono)">formatted container list</text>
+
+          <line x1="326" y1="290" x2="94" y2="290" stroke="currentColor" stroke-width="1.1" marker-end="url(#arrow05)" />
+          <text x="210" y="282" text-anchor="middle" font-size="9" font-family="var(--font-mono)">200 OK</text>
+
+          <rect x="40" y="320" width="800" height="56" rx="6" fill="none" stroke="var(--line)" />
+          <text x="440" y="342" text-anchor="middle" font-size="9.5" opacity="0.85">Same four-hop path for every call — only the presence of</text>
+          <text x="440" y="360" text-anchor="middle" font-size="9.5" opacity="0.85"><tspan font-family="var(--font-mono)">docker_host</tspan> decides whether hop 3 stays local or goes out over SSH.</text>
+        </svg>
+      </div>
+      <figcaption>One call, four hops — the only thing that changes between targets is whether hop three is a local socket or an SSH-tunneled remote engine.</figcaption>
+    </figure>
+    <div class="code-panel">
+      <div class="code-panel-label">list-containers(docker_host=...)</div>
+      <pre>list-containers()
+  → clubuntu's own containers (default engine, unchanged)
+
+list-containers(docker_host="ssh://katlego@katmint.dala-cirius.ts.net")
+  → postgres_db, influxdb3-core running; 31 others exited
+
+list-containers(docker_host="ssh://docker-mcp-svc@katlegog.dala-cirius.ts.net")
+  → codercommands-postgres, postgres-mcp, pgadmin, mcp-gateway... running; 28 others exited</pre>
+    </div>
+    <p>Three distinct container lists, from three distinct machines, through the exact same tool — the only thing distinguishing them was one argument, same as postgres-mcp's <code>connection_uri</code>.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">06</span><h2>Global aliases</h2></div>
+    <p>Rather than typing full <code>ssh://user@host</code> strings each time, <code>katmint</code> and <code>katlegog</code> are now recognized shorthand for their respective <code>docker_host</code> values — defined in the user-level <code>~/.claude/CLAUDE.md</code>, not this repo, so they resolve from any Claude Code session on any project, not just this one.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">07</span><h2>A second honest detour: 120 seconds for a container list</h2></div>
+    <p><code>list-containers</code> against either remote host was taking well over two minutes — long enough to get moved to a background task both times. A raw, single <code>ssh ... docker ps</code> round-trip to either host measured about the same, ~1.2 seconds — so the hosts themselves weren't the bottleneck.</p>
+    <p>The real cause: <code>python-on-whales</code>'s <code>container.list(all=True)</code> returns lightweight proxy objects, and reading <code>.name</code> or <code>.state.status</code> on each — which the handler does for every container in the list — lazily triggers a separate <code>docker inspect</code> CLI call per container. With no SSH connection reuse configured, each of those paid its own full handshake. ~35 containers per host × ~1.2s per handshake lines up almost exactly with the delay observed.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Measurement</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Single <code>ssh ... docker ps</code>, katmint</td><td><code>1.173s</code></td></tr>
+          <tr><td>Single <code>ssh ... docker ps</code>, katlegog</td><td><code>1.217s</code></td></tr>
+          <tr><td><code>list-containers</code> via MCP, before the fix</td><td class="status-open">120s+, backgrounded, both hosts</td></tr>
+          <tr><td><code>list-containers</code> via MCP, after the fix</td><td class="status-yes">✓ immediate, both hosts</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 220" role="img" aria-label="Before and after diagram. Before: docker ps followed by N separate docker inspect calls, each opening and closing its own full SSH handshake sequentially, totalling roughly N times 1.2 seconds. After: one SSH handshake via ControlMaster, then docker ps and all N docker inspect calls reuse that same connection, taking roughly 1.2 seconds total regardless of container count.">
+          <text x="220" y="20" text-anchor="middle" font-size="11" letter-spacing="1">BEFORE — one handshake per call</text>
+          <rect x="20" y="34" width="60" height="34" rx="4" fill="none" stroke="currentColor" /><text x="50" y="55" text-anchor="middle" font-size="8.5" font-family="var(--font-mono)">ssh</text>
+          <rect x="92" y="34" width="60" height="34" rx="4" fill="none" stroke="currentColor" /><text x="122" y="55" text-anchor="middle" font-size="8.5" font-family="var(--font-mono)">ssh</text>
+          <rect x="164" y="34" width="60" height="34" rx="4" fill="none" stroke="currentColor" /><text x="194" y="55" text-anchor="middle" font-size="8.5" font-family="var(--font-mono)">ssh</text>
+          <text x="248" y="55" text-anchor="middle" font-size="14" opacity="0.6">…</text>
+          <rect x="272" y="34" width="60" height="34" rx="4" fill="none" stroke="currentColor" /><text x="302" y="55" text-anchor="middle" font-size="8.5" font-family="var(--font-mono)">ssh</text>
+          <text x="180" y="88" text-anchor="middle" font-size="9.5" opacity="0.8">1 handshake + <tspan font-family="var(--font-mono)">docker ps</tspan>, then 1 more full handshake per container's <tspan font-family="var(--font-mono)">docker inspect</tspan></text>
+          <text x="180" y="106" text-anchor="middle" font-size="9.5" font-family="var(--font-mono)" opacity="0.8">≈ 35 containers × 1.2s ≈ 120s+</text>
+
+          <line x1="0" y1="128" x2="880" y2="128" stroke="var(--line)" />
+
+          <text x="220" y="150" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">AFTER — one handshake, reused</text>
+          <rect x="20" y="164" width="240" height="34" rx="4" fill="none" stroke="var(--accent)" /><text x="140" y="185" text-anchor="middle" font-size="8.5" fill="var(--accent)" font-family="var(--font-mono)">ssh (ControlMaster)</text>
+          <rect x="272" y="164" width="52" height="34" rx="4" fill="none" stroke="var(--accent)" stroke-dasharray="2,2" /><text x="298" y="185" text-anchor="middle" font-size="7.5" fill="var(--accent)" font-family="var(--font-mono)">reuse</text>
+          <rect x="332" y="164" width="52" height="34" rx="4" fill="none" stroke="var(--accent)" stroke-dasharray="2,2" /><text x="358" y="185" text-anchor="middle" font-size="7.5" fill="var(--accent)" font-family="var(--font-mono)">reuse</text>
+          <text x="410" y="185" text-anchor="middle" font-size="14" fill="var(--accent)" opacity="0.7">…</text>
+          <rect x="432" y="164" width="52" height="34" rx="4" fill="none" stroke="var(--accent)" stroke-dasharray="2,2" /><text x="458" y="185" text-anchor="middle" font-size="7.5" fill="var(--accent)" font-family="var(--font-mono)">reuse</text>
+          <text x="620" y="185" text-anchor="middle" font-size="9.5" fill="var(--accent)" font-family="var(--font-mono)">total ≈ 1.2s, regardless of container count</text>
+        </svg>
+      </div>
+      <figcaption>The handshake is the expensive part, not the command — pay it once per call instead of once per container.</figcaption>
+    </figure>
+    <p>Fix: <code>ControlMaster auto</code> / <code>ControlPath /root/.ssh/control/%r@%h:%p</code> / <code>ControlPersist 60s</code> added to <code>ssh_config</code>, with the control-socket directory created in the Dockerfile. All the per-container <code>docker inspect</code> calls within one tool call — and back-to-back calls within 60 seconds of each other — now reuse a single already-authenticated connection instead of renegotiating SSH dozens of times. Deployed as <code>v0.1.4</code>; re-running the same katlegog call that had been backgrounded came back instantly.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">08</span><h2>Where this leaves things</h2></div>
+    <ul class="punchlist">
+      <li>Both MCP servers meant to be pointable at any machine — <code>postgres-mcp</code> (§04 of the previous doc) and <code>docker-mcp</code> (this one) — are now proven end to end, deployed, and fast.</li>
+      <li>Adding a third target host to either is now a known, repeatable recipe: credential it (dedicated non-admin account if it's Windows), pin its host key into the mounted <code>known_hosts</code>, and it's reachable — no image rebuild required for <code>postgres-mcp</code>, no code changes required for either.</li>
+      <li>The Windows-admin-account SSH pitfall from §03 is worth remembering the next time any automated/service SSH access is needed into a Windows host, in this project or elsewhere.</li>
+    </ul>
+  </section>
+
+  <footer>final-run — 5 · docker-mcp remote engines proven end to end over Tailscale, and fast</footer>
+</div>

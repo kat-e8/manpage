@@ -1,0 +1,177 @@
+<title>Standing Up the Runner</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  .added { color: var(--accent); }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.9rem; }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-pending { color: var(--ink-soft); font-style: italic; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+  svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-docs · 8 — execution log (in progress)</div>
+    <h1>Standing Up the Runner</h1>
+    <p class="deck">What the self-hosted runner actually is on disk, the user-isolation decision behind it, and the four-phase install. Verification appended once each phase is confirmed run.</p>
+    <div class="meta">
+      <span>host: clubuntu.dala-cirius.ts.net</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>The decision: a dedicated user, not katlego</h2></div>
+    <p><code>katlego</code> already has everything technically needed — docker-group membership, ownership of the deploy directory. Using it would've meant zero new setup. Chose the more isolated path instead, on purpose.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 210" role="img" aria-label="Running the runner as katlego reuses an account that also has sudo access -- broader than necessary. A dedicated ghrunner user, in the docker group only, with no sudo, scopes the runner's reach to exactly what it needs: controlling Docker.">
+          <text x="220" y="25" text-anchor="middle" font-size="11" letter-spacing="1">NOT CHOSEN — run as katlego</text>
+          <rect x="40" y="45" width="360" height="100" rx="6" fill="none" stroke="currentColor" />
+          <text x="220" y="70" text-anchor="middle" font-size="10.5">groups: katlego, sudo, docker, users</text>
+          <text x="220" y="90" text-anchor="middle" font-size="9.5" opacity="0.75">zero new setup</text>
+          <text x="220" y="108" text-anchor="middle" font-size="9.5" opacity="0.75">but a compromised job now sits in an</text>
+          <text x="220" y="124" text-anchor="middle" font-size="9.5" opacity="0.75">account that's one password away from root</text>
+
+          <text x="660" y="25" text-anchor="middle" font-size="11" letter-spacing="1" fill="var(--accent)">CHOSEN — dedicated ghrunner</text>
+          <rect x="480" y="45" width="360" height="100" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="660" y="70" text-anchor="middle" font-size="10.5" fill="var(--accent)">groups: ghrunner, docker, katlego*</text>
+          <text x="660" y="90" text-anchor="middle" font-size="9.5" fill="var(--accent)">no sudo, no login shell</text>
+          <text x="660" y="108" text-anchor="middle" font-size="9.5" fill="var(--accent)">*katlego group added only to bridge</text>
+          <text x="660" y="124" text-anchor="middle" font-size="9.5" fill="var(--accent)">write access to the deploy directory</text>
+        </svg>
+      </div>
+      <figcaption>The blast radius of anything a queued job does is now "can control Docker, can write to one specific directory" — not "can do anything katlego can, including sudo."</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>What the runner actually is, on disk</h2></div>
+    <p>Not a system service that already exists — a plain directory of files, downloaded once, that GitHub's Actions backend and a small local agent both know how to talk to.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 780 260" role="img" aria-label="The runner install directory at /opt/actions-runner contains the agent binaries, a config file recording which repo and labels it registered under, a work folder where job checkouts happen, and svc.sh which wraps it as a systemd service.">
+          <rect x="30" y="20" width="720" height="220" rx="8" fill="none" stroke="currentColor" stroke-opacity="0.5" />
+          <text x="50" y="42" font-size="11" class="lbl-display">/opt/actions-runner  (home of ghrunner)</text>
+
+          <rect x="55" y="60" width="320" height="50" rx="4" fill="none" stroke="currentColor" />
+          <text x="215" y="80" text-anchor="middle" font-size="10.5">bin/, externals/</text>
+          <text x="215" y="97" text-anchor="middle" font-size="9.5" opacity="0.75">the agent software itself</text>
+
+          <rect x="405" y="60" width="320" height="50" rx="4" fill="none" stroke="var(--accent)" />
+          <text x="565" y="80" text-anchor="middle" font-size="10.5" fill="var(--accent)">.runner, .credentials</text>
+          <text x="565" y="97" text-anchor="middle" font-size="9.5" fill="var(--accent)">which repo, which labels, registered identity</text>
+
+          <rect x="55" y="130" width="320" height="50" rx="4" fill="none" stroke="currentColor" />
+          <text x="215" y="150" text-anchor="middle" font-size="10.5">_work/</text>
+          <text x="215" y="167" text-anchor="middle" font-size="9.5" opacity="0.75">fresh checkout, per job — disposable</text>
+
+          <rect x="405" y="130" width="320" height="50" rx="4" fill="none" stroke="currentColor">
+          </rect>
+          <text x="565" y="150" text-anchor="middle" font-size="10.5">svc.sh</text>
+          <text x="565" y="167" text-anchor="middle" font-size="9.5" opacity="0.75">installs/starts it as a systemd service</text>
+
+          <text x="400" y="205" text-anchor="middle" font-size="9.5" opacity="0.7">once running as a service, it polls GitHub continuously —</text>
+          <text x="400" y="221" text-anchor="middle" font-size="9.5" opacity="0.7">the same poll-not-push behavior documented in the Deployment series</text>
+        </svg>
+      </div>
+      <figcaption><code>.runner</code> is the file that makes label matching work — it's where <code>clubuntu</code> gets recorded as a label this specific install answers to, which is why <code>--labels clubuntu</code> at config time isn't optional.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>The four phases</h2></div>
+    <div class="code-panel">
+      <div class="code-panel-label">Phase 1 — user, docker access, bridge to the deploy directory</div>
+      <pre>sudo useradd --system --create-home --home-dir /opt/actions-runner --shell /usr/sbin/nologin ghrunner
+sudo usermod -aG docker ghrunner
+sudo usermod -aG katlego ghrunner
+sudo chmod -R g+rwX /opt/docker/manpage
+sudo chmod g+s /opt/docker/manpage /opt/docker/manpage/db</pre>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-label">Phase 3 — configure, as ghrunner, with the required label</div>
+      <pre>sudo -u ghrunner -i
+cd /opt/actions-runner
+# GitHub's download + extract commands go here, unmodified
+./config.sh --url https://github.com/kat-e8/manpage --token &lt;TOKEN&gt; \
+  --name clubuntu <span class="added">--labels clubuntu</span> --unattended
+exit</pre>
+    </div>
+    <div class="code-panel">
+      <div class="code-panel-label">Phase 4 — install as a systemd service</div>
+      <pre>cd /opt/actions-runner
+sudo ./svc.sh install ghrunner
+sudo ./svc.sh start
+sudo ./svc.sh status</pre>
+    </div>
+    <p>Phase 2 — generating the registration token — happens entirely in GitHub's web UI (repo Settings → Actions → Runners → New self-hosted runner) and isn't a command to log.</p>
+  </section>
+
+  <section>
+    <div class="section-head"><span class="section-num">04</span><h2>Status</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Phase</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>1 — user + permissions</td><td class="status-pending">pending confirmation</td></tr>
+          <tr><td>2 — registration token</td><td class="status-pending">pending confirmation</td></tr>
+          <tr><td>3 — configure with label</td><td class="status-pending">pending confirmation</td></tr>
+          <tr><td>4 — systemd service</td><td class="status-pending">pending confirmation</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>This section gets replaced with actual verification output once each phase is confirmed — the same pattern as every other execution-log entry in this folder.</p>
+  </section>
+
+  <footer>git-docs — 8 · host: clubuntu.dala-cirius.ts.net · in progress</footer>
+</div>

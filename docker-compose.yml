@@ -23,6 +23,7 @@ services:
 
   sync:
     build: ./sync
+    image: clubuntu.dala-cirius.ts.net:5000/sync:${IMAGE_TAG:-dev}
     container_name: codercommands-sync
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -42,6 +43,7 @@ services:
     # "mcp-server" as if it were the only or generic one. gateway (below)
     # is the generic part; this is one of the servers it mounts.
     build: ./coder-commands-mcp
+    image: clubuntu.dala-cirius.ts.net:5000/coder-commands-mcp:${IMAGE_TAG:-dev}
     container_name: coder-commands-mcp
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -57,6 +59,7 @@ services:
     # dependency on backend/. The two copies are independent from here --
     # changes to one do not propagate to the other.
     build: ./docker-mcp
+    image: clubuntu.dala-cirius.ts.net:5000/docker-mcp:${IMAGE_TAG:-dev}
     container_name: codercommands-docker-mcp
     volumes:
       # Docker-outside-of-Docker: this container has no daemon of its own --
@@ -78,6 +81,7 @@ services:
     # (unlike the compose service name) only to avoid colliding on the
     # Docker host with ../POSTGRES's own container also named postgres-mcp.
     build: ./postgres-mcp
+    image: clubuntu.dala-cirius.ts.net:5000/postgres-mcp:${IMAGE_TAG:-dev}
     container_name: codercommands-postgres-mcp
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -94,6 +98,7 @@ services:
     # env var, proxy route, and depends_on entry, nothing about this
     # service's own identity.
     build: ./api
+    image: clubuntu.dala-cirius.ts.net:5000/gateway:${IMAGE_TAG:-dev}
     container_name: generic-mcp-gateway
     environment:
       CODER_COMMANDS_MCP_UPSTREAM_URL: http://coder-commands-mcp:9000

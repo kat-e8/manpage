@@ -1,0 +1,23 @@
+name: deploy
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, clubuntu]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          SHA=$(git rev-list -n 1 ${GITHUB_REF_NAME})
+          echo "IMAGE_TAG=${SHA::7}" >> $GITHUB_ENV
+      - run: |
+          # The checkout above is a fresh, disposable directory -- .env lives
+          # only in the persistent deploy directory below, so the compose
+          # file moves to where .env already is, not the other way around.
+          cp docker-compose.deploy.yml /opt/docker/manpage/docker-compose.deploy.yml
+      - run: |
+          cd /opt/docker/manpage
+          docker compose -f docker-compose.deploy.yml pull
+          docker compose -f docker-compose.deploy.yml up -d

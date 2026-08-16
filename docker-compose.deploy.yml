@@ -1,0 +1,101 @@
+name: codercommands
+
+# Deployed by .github/workflows/deploy.yml on clubuntu. No build: keys
+# anywhere in this file, deliberately -- every service resolves to an
+# already-built image pulled from the registry, so this file never needs
+# the Dockerfiles or source tree present to run. IMAGE_TAG is set by the
+# deploy workflow to the commit SHA a release tag resolves to; there is no
+# :dev fallback here (unlike docker-compose.yml) since this file is only
+# ever run with IMAGE_TAG already set.
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: codercommands-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    networks: [codercommands]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  sync:
+    image: clubuntu.dala-cirius.ts.net:5000/sync:${IMAGE_TAG}
+    container_name: codercommands-sync
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      XLSX_PATH: /data/coder_commands.xlsx
+      SYNC_POLL_SECONDS: ${SYNC_POLL_SECONDS}
+    volumes:
+      - ${XLSX_HOST_PATH}:/data/coder_commands.xlsx:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [codercommands]
+    restart: unless-stopped
+
+  coder-commands-mcp:
+    image: clubuntu.dala-cirius.ts.net:5000/coder-commands-mcp:${IMAGE_TAG}
+    container_name: coder-commands-mcp
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [codercommands]
+    restart: unless-stopped
+
+  docker-mcp:
+    image: clubuntu.dala-cirius.ts.net:5000/docker-mcp:${IMAGE_TAG}
+    container_name: codercommands-docker-mcp
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [codercommands]
+    restart: unless-stopped
+
+  postgres-mcp:
+    image: clubuntu.dala-cirius.ts.net:5000/postgres-mcp:${IMAGE_TAG}
+    container_name: codercommands-postgres-mcp
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [codercommands]
+    restart: unless-stopped
+
+  gateway:
+    image: clubuntu.dala-cirius.ts.net:5000/gateway:${IMAGE_TAG}
+    container_name: generic-mcp-gateway
+    environment:
+      CODER_COMMANDS_MCP_UPSTREAM_URL: http://coder-commands-mcp:9000
+      POSTGRES_MCP_UPSTREAM_URL: http://postgres-mcp:8000
+      DOCKER_MCP_UPSTREAM_URL: http://docker-mcp:8008
+    ports:
+      - "${GATEWAY_HOST_PORT}:8100"
+    depends_on:
+      - coder-commands-mcp
+      - docker-mcp
+      - postgres-mcp
+    networks: [codercommands]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8100/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  codercommands:
+    name: codercommands-net
+
+volumes:
+  pgdata:
+    name: codercommands-pgdata

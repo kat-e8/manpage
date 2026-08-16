@@ -1,0 +1,15 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: [self-hosted, clubuntu]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          export IMAGE_TAG=${GITHUB_SHA::7}
+          docker compose build
+          docker compose push

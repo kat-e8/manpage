@@ -1,12 +1,13 @@
 """
 Generic MCP gateway -- not coder-commands-specific, despite living in this
 project. Reverse-proxies /coder-commands-mcp/* to the coder-commands-mcp
-service, /docker-mcp/* to the docker-mcp service, and /postgres-mcp/* to the
-postgres-mcp service -- all three Streamable HTTP -- giving the system one
-external entry point and a place to add auth/logging later without touching
-any individual server's logic. Meant to keep mounting whatever MCP servers
-this project ends up with; adding one is a new upstream + proxy route here,
-nothing about this gateway's own identity.
+service, /docker-mcp/* to the docker-mcp service, /postgres-mcp/* to the
+postgres-mcp service, and /git-mcp/* to the git-mcp service -- all four
+Streamable HTTP -- giving the system one external entry point and a place
+to add auth/logging later without touching any individual server's logic.
+Meant to keep mounting whatever MCP servers this project ends up with;
+adding one is a new upstream + proxy route here, nothing about this
+gateway's own identity.
 
 The MCP Streamable HTTP transport is stateful and can stream (SSE) --
 this is a real byte-level reverse proxy (method, headers, body, and the
@@ -32,6 +33,9 @@ POSTGRES_MCP_UPSTREAM_URL = os.environ.get(
 DOCKER_MCP_UPSTREAM_URL = os.environ.get(
     "DOCKER_MCP_UPSTREAM_URL", "http://docker-mcp:8008"
 )
+GIT_MCP_UPSTREAM_URL = os.environ.get(
+    "GIT_MCP_UPSTREAM_URL", "http://git-mcp:8010"
+)
 
 # Fail closed: with docker-mcp behind this proxy holding the host's Docker
 # socket, an unset key must deny every proxied request rather than silently
@@ -54,18 +58,21 @@ HOP_BY_HOP = {
 _cc_client: httpx.AsyncClient
 _pg_client: httpx.AsyncClient
 _docker_client: httpx.AsyncClient
+_git_client: httpx.AsyncClient
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    global _cc_client, _pg_client, _docker_client
+    global _cc_client, _pg_client, _docker_client, _git_client
     _cc_client = httpx.AsyncClient(base_url=CODER_COMMANDS_MCP_UPSTREAM_URL, timeout=None)
     _pg_client = httpx.AsyncClient(base_url=POSTGRES_MCP_UPSTREAM_URL, timeout=None)
     _docker_client = httpx.AsyncClient(base_url=DOCKER_MCP_UPSTREAM_URL, timeout=None)
+    _git_client = httpx.AsyncClient(base_url=GIT_MCP_UPSTREAM_URL, timeout=None)
     yield
     await _cc_client.aclose()
     await _pg_client.aclose()
     await _docker_client.aclose()
+    await _git_client.aclose()
 
 
 app = FastAPI(title="MCP Gateway", lifespan=lifespan)
@@ -117,6 +124,33 @@ async def proxy_docker_mcp(path: str, request: Request):
         request.method, url, headers=headers, content=body, params=request.query_params,
     )
     upstream_resp = await _docker_client.send(upstream_req, stream=True)
+
+    resp_headers = {k: v for k, v in upstream_resp.headers.items() if k.lower() not in HOP_BY_HOP}
+
+    return StreamingResponse(
+        upstream_resp.aiter_raw(),
+        status_code=upstream_resp.status_code,
+        headers=resp_headers,
+        background=BackgroundTask(upstream_resp.aclose),
+    )
+
+
+@app.api_route(
+    "/git-mcp{path:path}",
+    methods=["GET", "POST", "DELETE"],
+    dependencies=[Depends(require_api_key)],
+)
+async def proxy_git_mcp(path: str, request: Request):
+    # git-mcp is Streamable HTTP (single /mcp endpoint, no separate
+    # /messages side-channel), so this mirrors proxy_docker_mcp.
+    url = f"/mcp{path}"
+    headers = {k: v for k, v in request.headers.items() if k.lower() not in HOP_BY_HOP}
+    body = await request.body()
+
+    upstream_req = _git_client.build_request(
+        request.method, url, headers=headers, content=body, params=request.query_params,
+    )
+    upstream_resp = await _git_client.send(upstream_req, stream=True)
 
     resp_headers = {k: v for k, v in upstream_resp.headers.items() if k.lower() not in HOP_BY_HOP}
 

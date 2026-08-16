@@ -22,6 +22,7 @@ the first live run.
 coder_commands.xlsx --(read, polled)--> sync --(write)--> postgres --(read)--> coder-commands-mcp --(proxied)--> gateway --> Claude Code
                                                                      docker-mcp --(proxied)--^
                                                                      postgres-mcp --(proxied)--^
+                                                                     git-mcp --(proxied)--^
 ```
 
 | Service | Role | Reachable from |
@@ -31,7 +32,8 @@ coder_commands.xlsx --(read, polled)--> sync --(write)--> postgres --(read)--> c
 | `coder-commands-mcp` | Exposes `search_commands`, `list_topics`, `browse_<topic>` as MCP tools -- the coder-commands lookup server specifically | Only `gateway`, by service name |
 | `docker-mcp` | Exposes `create-container`, `deploy-compose`, `get-logs`, `list-containers` as MCP tools, driving the *host's* Docker daemon via a bind-mounted `/var/run/docker.sock` (docker-outside-of-docker -- see [Known limitations](#known-limitations-v1)) | Only `gateway`, by service name |
 | `postgres-mcp` | Exposes `list_schemas`, `list_tables`, `describe_table`, `run_query` as MCP tools, against its own `postgres` by default or any database given a per-call `connection_uri` | Only `gateway`, by service name |
-| `gateway` | Generic MCP gateway, not coder-commands-specific -- reverse-proxies `/coder-commands-mcp`, `/docker-mcp`, and `/postgres-mcp` to their respective services; the one published port. Meant to keep mounting whatever MCP servers this project ends up with. | The host, at `GATEWAY_HOST_PORT` |
+| `git-mcp` | Exposes 13 typed git tools (`git_status`, `git_log`, `git_diff`, `git_show`, `git_branch_list`, `git_remote_list`, `git_add`, `git_commit`, `git_fetch`, `git_pull`, `git_checkout`, `git_branch_create`, `git_push`) against a repo on any registered tailnet host, over SSH -- every call requires a `target` and `repo_path`, no local default (see [Known limitations](#known-limitations-v1)) | Only `gateway`, by service name |
+| `gateway` | Generic MCP gateway, not coder-commands-specific -- reverse-proxies `/coder-commands-mcp`, `/docker-mcp`, `/postgres-mcp`, and `/git-mcp` to their respective services; the one published port. Meant to keep mounting whatever MCP servers this project ends up with. | The host, at `GATEWAY_HOST_PORT` |
 
 `docker-mcp`'s source is a fork of
 [QuantGeekDev/docker-mcp](https://github.com/QuantGeekDev/docker-mcp), kept
@@ -52,6 +54,17 @@ an optional `connection_uri` to target a different database for that one
 call -- the same per-call override pattern `docker-mcp` uses for
 `docker_host`. No shared Docker network or sibling project is required.
 
+`git-mcp` is also this project's own code, at `./git-mcp`. Unlike the other
+two, it has no local default target at all: git's working-tree commands
+(`status`, `diff`, `commit`) are inherently local-filesystem operations with
+no connection-string equivalent, so every tool call names a `target` --
+resolved against a small registry (`GIT_MCP_TARGETS`) rather than a
+free-form `ssh://` string, closing an SSH option-injection edge case a raw
+host string would allow. See `git-mcp/design-plan.pdf` for the full design,
+including the two-layer defense (shell quoting + structural validation)
+against command injection from caller-supplied repo paths, branch names,
+and commit messages.
+
 ## Running it
 
 ```
@@ -67,6 +80,7 @@ same way:
 claude mcp add --transport http codercommands http://127.0.0.1:8100/coder-commands-mcp
 claude mcp add --transport http docker http://127.0.0.1:8100/docker-mcp
 claude mcp add --transport http postgres http://127.0.0.1:8100/postgres-mcp
+claude mcp add --transport http git http://127.0.0.1:8100/git-mcp
 ```
 
 Check everything is healthy:
@@ -189,3 +203,13 @@ docker compose down -v                    # stop and wipe the Postgres volume
   (no published host port), which is the only thing standing between "an
   internal MCP tool" and "an open door to the host" -- treat that network
   boundary as security-relevant before changing it.
+- `git-mcp` operates against a caller-supplied `repo_path` on the target
+  host's real filesystem -- there is no per-repo allowlist, only the target
+  registry restricting *which hosts* are reachable at all. Force-push,
+  `reset --hard`, `clean -f`, rebase, and any other history-rewriting
+  operation are excluded from the tool set by omission, not gated behind a
+  runtime flag -- there is no way to make git-mcp perform one short of
+  redeploying it with new code. Windows-target (`katlegog`) support
+  specifically depends on `git_mcp/quoting.py`'s `windows_quote()` being
+  separately verified against real cmd.exe metacharacters before that
+  registry entry is enabled -- see `git-mcp/design-plan.pdf`.

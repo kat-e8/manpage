@@ -1,0 +1,16 @@
+# Baked into the image (see Dockerfile). Applies to every git operation --
+# unlike docker-mcp, there is no "local" default here (this container has no
+# meaningful repos of its own), so every tool call goes over ssh, including
+# to the host running git-mcp itself (a self-loop registry entry). Private
+# key and known_hosts are bind-mounted in by docker-compose.yml (host
+# secrets, never shipped in the image).
+Host *
+    IdentityFile /root/.ssh/id_ed25519_git_mcp
+    IdentitiesOnly yes
+    UserKnownHostsFile /root/.ssh/known_hosts
+    StrictHostKeyChecking yes
+    # Baked in from day one -- docker-mcp only added this after discovering
+    # 120s+ latency from issuing one full SSH handshake per subprocess call.
+    ControlMaster auto
+    ControlPath /root/.ssh/control/%r@%h:%p
+    ControlPersist 60s

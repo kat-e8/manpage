@@ -1,0 +1,303 @@
+<title>git-mcp design plan</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  .status-pill { display: inline-block; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 3px 12px; width: fit-content; }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.02rem; margin: 0; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .code-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; max-width: 900px; }
+  .code-panel-label { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface-tint); }
+  .code-panel pre { margin: 0; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.5; }
+  ul.punchlist, ul.notelist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li, ul.notelist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before, ul.notelist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.88rem; font-family: var(--font-mono); }
+  .warn { border-left-color: #C9713D; }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  .status-open { color: var(--ink-soft); font-style: italic; }
+  .status-no { color: #C9713D; font-weight: 600; }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-mcp · design plan</div>
+    <span class="status-pill">Proposed — awaiting review</span>
+    <h1>git-mcp: reaching any repo, on any tailnet node, in plain English</h1>
+    <p class="deck">A third remote-capable MCP server, alongside docker-mcp and postgres-mcp — same gateway, same tailnet, same "point it anywhere" idea, but git's own shape forces a genuinely different design underneath. Nothing in this doc has been built yet.</p>
+    <div class="meta">
+      <span>status: not implemented — plan only</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>What's already solved, and what isn't</h2></div>
+    <p><strong>"Plain English instead of git commands" needs nothing new.</strong> That's what MCP + an LLM already does — "list containers on katmint" already becomes a structured <code>list-containers(docker_host=...)</code> call today, with no NLP layer inside docker-mcp itself. Whatever git-mcp exposes as typed tools gets the same treatment automatically.</p>
+    <p><strong>"Point it at any tailnet node" is the real design problem</strong> — and git isn't like Docker or Postgres here. Docker has a native remote-daemon protocol (<code>docker -H ssh://...</code>); Postgres has a native network protocol (any client, any connection string). Git's working-tree commands — <code>status</code>, <code>diff</code>, <code>commit</code> — are inherently local filesystem operations. There's no "connection string" that gives you <code>git status</code> on a different machine's repo. The rest of this doc is about how to bridge that gap safely.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>Decisions already made</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Question</th><th>Decision</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Remote access mechanism</td><td>SSH-execute</td><td>Mirrors docker-mcp exactly; full command set available, not just sync operations</td></tr>
+          <tr><td>Tool shape</td><td>Typed tools per operation</td><td>Matches docker-mcp/postgres-mcp — neither exposes a raw passthrough tool; the tool <em>set</em> is the safety boundary</td></tr>
+          <tr><td>Repo scope</td><td>Arbitrary path per call</td><td>More flexible than a fixed registry — but raises the stakes on argument handling (§03)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Target registry, not a free-form host string</h2></div>
+    <p>Every tool takes a required <code>target</code> naming a server-side-registered alias — <code>clubuntu</code>, <code>katmint</code>, <code>katlegog</code> — never a raw <code>ssh://user@host</code> string the way docker-mcp's <code>docker_host</code> works. Two reasons this is the better shape specifically for git-mcp:</p>
+    <ul class="punchlist">
+      <li>Closes an SSH option-injection edge case a free-form string allows: a hostname beginning with <code>-</code> can be read as an <code>ssh</code> flag, not a destination. An alias can never do that.</li>
+      <li>Gives a fixed place to record each target's <em>shell dialect</em> — critical because katlegog is Windows (see §03).</li>
+    </ul>
+    <p>No "local" default exists. Unlike docker-mcp, which has a real local Docker daemon reachable via a mounted socket, git-mcp's own container has no meaningful repos on it — so even "target clubuntu" goes over SSH, a self-loop entry in the same registry as every other host.</p>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 260" role="img" aria-label="Topology diagram. git-mcp, running on clubuntu, resolves a target alias against a registry, then reaches three engines uniformly over SSH: clubuntu itself (self-loop), katmint, and katlegog. Each registry entry also records the target's shell dialect, posix or windows, used for safe command quoting.">
+          <defs>
+            <marker id="arrowg02" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="20" y="100" width="220" height="64" rx="6" fill="none" stroke="currentColor" />
+          <text x="130" y="122" text-anchor="middle" font-size="10.5">git-mcp</text>
+          <text x="130" y="140" text-anchor="middle" font-size="9" opacity="0.75">alias → {ssh, os} registry</text>
+          <text x="130" y="154" text-anchor="middle" font-size="8" opacity="0.6" font-family="var(--font-mono)">GIT_MCP_TARGETS</text>
+
+          <line x1="240" y1="112" x2="420" y2="40" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrowg02)" />
+          <line x1="240" y1="132" x2="420" y2="132" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#arrowg02)" />
+          <line x1="240" y1="152" x2="420" y2="224" stroke="var(--accent)" stroke-width="1.2" marker-end="url(#arrowg02)" />
+
+          <rect x="430" y="10" width="420" height="60" rx="6" fill="none" stroke="currentColor" />
+          <text x="640" y="34" text-anchor="middle" font-size="10.5">clubuntu (self-loop)</text>
+          <text x="640" y="52" text-anchor="middle" font-size="9" opacity="0.75" font-family="var(--font-mono)">ssh katlego@clubuntu · os: posix</text>
+
+          <rect x="430" y="102" width="420" height="60" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="640" y="126" text-anchor="middle" font-size="10.5" fill="var(--accent)">katmint</text>
+          <text x="640" y="144" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">ssh katlego@katmint · os: posix</text>
+
+          <rect x="430" y="194" width="420" height="60" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="640" y="214" text-anchor="middle" font-size="10.5" fill="var(--accent)">katlegog (Windows)</text>
+          <text x="640" y="232" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">ssh docker-mcp-svc@katlegog · os: windows</text>
+          <text x="640" y="248" text-anchor="middle" font-size="8" fill="#C9713D" font-family="var(--font-mono)">gated until windows_quote() is verified — §06</text>
+        </svg>
+      </div>
+      <figcaption>A dedicated <code>git_mcp_ed25519</code> keypair, separate from docker-mcp's own, appended as a second <code>authorized_keys</code> line on the same already-provisioned accounts (no new OS accounts needed).</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>The hard problem: safe remote command construction</h2></div>
+    <p>Every tool ultimately runs <code>ssh &lt;destination&gt; "git -C &lt;repo_path&gt; &lt;args...&gt;"</code>. SSH's protocol always re-joins the remote command into one string and hands it to the target's login shell — there is no argv-preserving remote-exec mode. That creates <em>two independent risks</em>, and both need addressing:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Risk</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>1. Shell-metacharacter injection</td><td>A backtick or <code>$( )</code> in a commit message gets executed by the target's shell instead of stored as text</td><td>Dialect-aware quoting: <code>shlex.quote()</code> for POSIX targets, a separate <code>windows_quote()</code> for cmd.exe — <strong>never assume one dialect</strong>, select via the target registry's <code>os</code> field</td></tr>
+          <tr><td>2. Argument-shape / flag injection</td><td>A perfectly shell-safe string can still be dangerous by <em>position</em> — a branch name of <code>--upload-pack=...</code> or a pathspec of <code>--force</code> gets parsed by <code>git</code> itself as a flag once it arrives intact</td><td>Structural validation <em>before</em> quoting: reject any ref/branch/remote/pathspec starting with <code>-</code>, validate against git's ref-name grammar</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 260" role="img" aria-label="Flowchart. A tool call's arguments first pass through structural validation, which rejects anything starting with a dash or failing the ref-name grammar. Validated arguments then pass through dialect-aware quoting, chosen by the target's registered operating system, posix or windows. Only then is the ssh command constructed and executed. Any failure at validation or quoting returns a tool error instead of proceeding.">
+          <defs>
+            <marker id="arrowg03" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+          </defs>
+          <rect x="20" y="16" width="180" height="50" rx="6" fill="none" stroke="currentColor" />
+          <text x="110" y="46" text-anchor="middle" font-size="10">tool call args</text>
+
+          <line x1="200" y1="41" x2="256" y2="41" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrowg03)" />
+
+          <rect x="260" y="16" width="240" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="380" y="38" text-anchor="middle" font-size="10" fill="var(--accent)">structural validation</text>
+          <text x="380" y="54" text-anchor="middle" font-size="8" fill="var(--accent)" font-family="var(--font-mono)">reject leading "-", bad ref grammar</text>
+
+          <line x1="380" y1="66" x2="380" y2="98" stroke="#C9713D" stroke-width="1.2" marker-end="url(#arrowg03)" />
+          <rect x="270" y="102" width="220" height="34" rx="5" fill="none" stroke="#C9713D" stroke-dasharray="3,3" />
+          <text x="380" y="123" text-anchor="middle" font-size="9" fill="#C9713D">reject → tool error</text>
+
+          <line x1="500" y1="41" x2="556" y2="41" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrowg03)" />
+
+          <rect x="560" y="16" width="230" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="675" y="38" text-anchor="middle" font-size="10" fill="var(--accent)">dialect-aware quoting</text>
+          <text x="675" y="54" text-anchor="middle" font-size="8" fill="var(--accent)" font-family="var(--font-mono)">posix_quote() / windows_quote()</text>
+
+          <line x1="675" y1="66" x2="675" y2="98" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrowg03)" />
+
+          <rect x="555" y="102" width="240" height="50" rx="6" fill="none" stroke="currentColor" />
+          <text x="675" y="124" text-anchor="middle" font-size="10">build + run ssh command</text>
+          <text x="675" y="140" text-anchor="middle" font-size="8" opacity="0.7" font-family="var(--font-mono)">GIT_TERMINAL_PROMPT=0, 30s timeout</text>
+
+          <rect x="40" y="188" width="800" height="56" rx="6" fill="none" stroke="var(--line)" />
+          <text x="440" y="210" text-anchor="middle" font-size="9.5" opacity="0.85">Both layers live in one module (<tspan font-family="var(--font-mono)">quoting.py</tspan>), called from one place</text>
+          <text x="440" y="228" text-anchor="middle" font-size="9.5" opacity="0.85">(<tspan font-family="var(--font-mono)">ssh_executor.py</tspan>) — mirrors how <tspan font-family="var(--font-mono)">docker_executor.py</tspan> centralizes this today.</text>
+        </svg>
+      </div>
+      <figcaption>Neither layer alone is sufficient — quoting stops shell re-splitting, validation stops git from parsing a clean argument as a flag.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">04</span><h2>v1 tool list</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Tools</th></tr></thead>
+        <tbody>
+          <tr><td class="status-yes">Read</td><td><code>git_status</code>, <code>git_log</code>, <code>git_diff</code>, <code>git_show</code>, <code>git_branch_list</code>, <code>git_remote_list</code></td></tr>
+          <tr><td class="status-yes">Safe mutating</td><td><code>git_add</code>, <code>git_commit</code> (no <code>--amend</code>), <code>git_fetch</code>, <code>git_pull</code> (plain merge, no <code>--rebase</code>), <code>git_checkout</code> (switch or <code>-b</code> create only), <code>git_branch_create</code>, <code>git_push</code> (no <code>force</code> parameter anywhere in the schema)</td></tr>
+          <tr><td class="status-no">Excluded from v1</td><td>force-push, <code>reset --hard</code>, <code>clean -f</code>/<code>-fdx</code>, rebase, <code>commit --amend</code>, history rewriting, force branch delete, <code>tag -f</code>, <code>checkout --force</code>, any raw passthrough command tool</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Same rule docker-mcp/postgres-mcp already follow: the tool set itself is the allowlist. Nothing here is gated behind a runtime <code>confirm=true</code> flag, because nothing in this codebase works that way — dangerous operations are simply never implemented.</p>
+    <div class="callout">GIT_TERMINAL_PROMPT=0 on every network-touching call (fetch/pull/push) — without it, a target needing interactive git credentials hangs the MCP call forever with no TTY to prompt against. Paired with a 30s subprocess timeout.</div>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">05</span><h2>One call, end to end</h2></div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 880 340" role="img" aria-label="Sequence diagram. Claude Code sends a POST request with an X-API-Key header to the gateway. The gateway forwards to git-mcp. git-mcp resolves the target alias, validates and quotes the arguments, then runs ssh to the target host, reusing a multiplexed connection. The target host executes git and returns output. The response flows back up through git-mcp and the gateway to Claude Code.">
+          <text x="90" y="24" text-anchor="middle" font-size="10.5" font-weight="700">Claude Code</text>
+          <text x="330" y="24" text-anchor="middle" font-size="10.5" font-weight="700">Gateway :8100</text>
+          <text x="570" y="24" text-anchor="middle" font-size="10.5" font-weight="700">git-mcp</text>
+          <text x="810" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--accent)">Target host</text>
+
+          <line x1="90" y1="36" x2="90" y2="320" stroke="var(--line-strong)" stroke-dasharray="3,3" />
+          <line x1="330" y1="36" x2="330" y2="320" stroke="var(--line-strong)" stroke-dasharray="3,3" />
+          <line x1="570" y1="36" x2="570" y2="320" stroke="var(--line-strong)" stroke-dasharray="3,3" />
+          <line x1="810" y1="36" x2="810" y2="320" stroke="var(--line-strong)" stroke-dasharray="3,3" />
+
+          <defs>
+            <marker id="arrowg05" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+            <marker id="arrowg05a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+            </marker>
+          </defs>
+
+          <line x1="90" y1="62" x2="326" y2="62" stroke="currentColor" stroke-width="1.1" marker-end="url(#arrowg05)" />
+          <text x="210" y="54" text-anchor="middle" font-size="9" font-family="var(--font-mono)">POST /git-mcp · X-API-Key</text>
+
+          <line x1="330" y1="90" x2="566" y2="90" stroke="currentColor" stroke-width="1.1" marker-end="url(#arrowg05)" />
+          <text x="450" y="82" text-anchor="middle" font-size="9" font-family="var(--font-mono)">git_commit(target="katmint", repo_path=..., message=...)</text>
+
+          <rect x="480" y="106" width="220" height="34" rx="5" fill="none" stroke="var(--line-strong)" />
+          <text x="590" y="127" text-anchor="middle" font-size="8.5" opacity="0.8">validate args → quote for target's os</text>
+
+          <line x1="570" y1="164" x2="806" y2="164" stroke="var(--accent)" stroke-width="1.1" marker-end="url(#arrowg05a)" />
+          <text x="690" y="152" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">ssh katlego@katmint "git -C &lt;path&gt; commit -m &lt;quoted&gt;"</text>
+          <text x="690" y="178" text-anchor="middle" font-size="8.5" fill="var(--accent)" opacity="0.8">(reuses multiplexed connection, ControlMaster)</text>
+
+          <line x1="806" y1="210" x2="574" y2="210" stroke="var(--accent)" stroke-width="1.1" marker-end="url(#arrowg05a)" />
+          <text x="690" y="202" text-anchor="middle" font-size="9" fill="var(--accent)" font-family="var(--font-mono)">returncode, stdout, stderr</text>
+
+          <line x1="566" y1="244" x2="334" y2="244" stroke="currentColor" stroke-width="1.1" marker-end="url(#arrowg05)" />
+          <text x="450" y="236" text-anchor="middle" font-size="9" font-family="var(--font-mono)">structured result</text>
+
+          <line x1="326" y1="276" x2="94" y2="276" stroke="currentColor" stroke-width="1.1" marker-end="url(#arrowg05)" />
+          <text x="210" y="268" text-anchor="middle" font-size="9" font-family="var(--font-mono)">200 OK</text>
+
+          <rect x="40" y="296" width="800" height="20" rx="4" fill="none" stroke="none" />
+          <text x="440" y="311" text-anchor="middle" font-size="9" opacity="0.7">Read tools follow the identical path, minus the network-credential concern.</text>
+        </svg>
+      </div>
+      <figcaption>Same four-hop shape as docker-mcp's own remote calls — validation and quoting are the two extra steps git-mcp adds inside its own box.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">06</span><h2>Staged rollout: POSIX first, Windows gated</h2></div>
+    <p>Implement and fully verify <code>clubuntu</code> + <code>katmint</code> (both POSIX, <code>shlex.quote()</code> covers them) before enabling the <code>katlegog</code> registry entry. <code>windows_quote()</code> gets its own explicit test cases — cmd.exe metacharacters <code>&amp; | &lt; &gt; ^ %</code> — before that target goes live. Don't ship an unverified Windows quoting path silently alongside the proven POSIX one.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">07</span><h2>File-by-file changes</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>File</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td><code>git-mcp/</code> (new)</td><td>Hybrid layout: docker-mcp's SSH transport + postgres-mcp's FastMCP/<code>tools/</code> package shape. <code>Dockerfile</code>, <code>ssh_config</code>, <code>pyproject.toml</code>, <code>mcp_server.py</code>, <code>src/git_mcp/{config,quoting,ssh_executor,server}.py</code>, <code>src/git_mcp/tools/{_scope,read,write}.py</code></td></tr>
+          <tr><td><code>docker-compose.yml</code> / <code>.deploy.yml</code></td><td>New <code>git-mcp</code> service block; <code>GIT_MCP_UPSTREAM_URL</code> + <code>git-mcp</code> added to <code>gateway</code></td></tr>
+          <tr><td><code>.env.example</code></td><td>New <code>--- git-mcp ---</code> section: keypair setup steps, <code>GIT_MCP_SSH_KEY_PATH</code>, <code>GIT_MCP_SSH_KNOWN_HOSTS_PATH</code>, <code>GIT_MCP_TARGETS</code> registry</td></tr>
+          <tr><td><code>api/main.py</code></td><td><code>proxy_git_mcp</code>, identical shape to <code>proxy_docker_mcp</code>, mounted at <code>/git-mcp{path:path}</code></td></tr>
+          <tr><td><code>.github/workflows/build.yml</code></td><td>Throwaway <code>/dev/null</code> values for the two new bind-mount-source vars, <code>'{}'</code> for the registry</td></tr>
+          <tr><td><code>README.md</code></td><td>New services-table row, registration command, two new <code>Known limitations</code> bullets</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Reused directly, not re-derived: <code>docker-mcp/src/docker_mcp/docker_executor.py</code> (SSH mechanics template), <code>postgres-mcp/src/postgres_mcp/tools/_scope.py</code> (per-call-override param shape), <code>docker-mcp/ssh_config</code> (near-verbatim, just repoint <code>IdentityFile</code>), and the Windows admin-account SSH pitfall already solved for docker-mcp (<code>docker-mcp-svc</code> in <code>docker-users</code>, not <code>Administrators</code>) — not rediscovered.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">08</span><h2>Verification plan</h2></div>
+    <ul class="punchlist">
+      <li><strong>Read tools against real repos</strong> (safe, no mutation possible): this repo itself, on katlegog and its clone on clubuntu — confirms Windows-path handling even for read-only calls.</li>
+      <li><strong>Write tools against a disposable scratch repo only</strong> — never this repo, never a real upstream remote. Bootstrap a bare repo + clone manually, exercise <code>git_add</code>/<code>git_commit</code>/<code>git_push</code> against it.</li>
+      <li><strong>Deliberate injection test cases, not an afterthought</strong>: a commit message with shell metacharacters (should pass through as inert data), a branch name starting with <code>-</code> (should be rejected by <code>validate_ref_name</code>) — repeated with cmd.exe metacharacters once <code>windows_quote()</code> exists.</li>
+      <li>Confirm <code>GIT_TERMINAL_PROMPT=0</code> actually prevents a hang against a credential-requiring remote.</li>
+      <li>Same deploy pipeline as docker-mcp: push → build, tag → deploy, confirm mounts via <code>docker inspect</code>, then test through the real <code>mcp__git__*</code> tools.</li>
+    </ul>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">09</span><h2>Known limitation, flagged not solved</h2></div>
+    <div class="callout warn"><code>push</code>/<code>pull</code>/<code>fetch</code> against a real upstream (e.g. GitHub) depends on the <em>target account's own</em> git credentials (e.g. <code>docker-mcp-svc</code>'s own SSH key or token) — a separate concern from the git-mcp→host SSH tunnel itself. Verification sidesteps this with a disposable bare-repo remote; making real-remote push/pull work for a given account is a follow-up, not part of this plan.</div>
+  </section>
+
+  <footer>git-mcp — design plan, awaiting review. Nothing in this document has been implemented.</footer>
+</div>

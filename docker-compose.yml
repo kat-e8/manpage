@@ -115,12 +115,34 @@ services:
     networks: [codercommands]
     restart: unless-stopped
 
+  git-mcp:
+    # Typed git operations against a repo on any registered tailnet host,
+    # over SSH -- mirrors docker-mcp's SSH-execute pattern, not
+    # postgres-mcp's native-network-protocol one, since git's working-tree
+    # commands are inherently local-filesystem operations with no
+    # connection-string equivalent. Own dedicated keypair (separate from
+    # docker-mcp's, for blast-radius separation), reusing the same
+    # already-provisioned accounts on each target host. No local git/docker
+    # binary needed -- every operation goes over ssh, including to the host
+    # git-mcp itself runs on (see GIT_MCP_TARGETS below). See
+    # git-mcp/design-plan.pdf for the full design.
+    build: ./git-mcp
+    image: clubuntu.dala-cirius.ts.net:5000/git-mcp:${IMAGE_TAG:-dev}
+    container_name: git-mcp
+    environment:
+      GIT_MCP_TARGETS: ${GIT_MCP_TARGETS}
+    volumes:
+      - ${GIT_MCP_SSH_KEY_PATH}:/root/.ssh/id_ed25519_git_mcp:ro
+      - ${GIT_MCP_SSH_KNOWN_HOSTS_PATH}:/root/.ssh/known_hosts:ro
+    networks: [codercommands]
+    restart: unless-stopped
+
   gateway:
     # Generic MCP gateway -- not coder-commands-specific. Mounts whatever
     # upstream MCP servers this project has (currently coder-commands-mcp,
-    # docker-mcp, postgres-mcp); adding a new one later is a new upstream
-    # env var, proxy route, and depends_on entry, nothing about this
-    # service's own identity.
+    # docker-mcp, postgres-mcp, git-mcp); adding a new one later is a new
+    # upstream env var, proxy route, and depends_on entry, nothing about
+    # this service's own identity.
     build: ./api
     image: clubuntu.dala-cirius.ts.net:5000/gateway:${IMAGE_TAG:-dev}
     container_name: generic-mcp-gateway
@@ -128,6 +150,7 @@ services:
       CODER_COMMANDS_MCP_UPSTREAM_URL: http://coder-commands-mcp:9000
       POSTGRES_MCP_UPSTREAM_URL: http://postgres-mcp:8000
       DOCKER_MCP_UPSTREAM_URL: http://docker-mcp:8008
+      GIT_MCP_UPSTREAM_URL: http://git-mcp:8010
       GATEWAY_API_KEY: ${GATEWAY_API_KEY}
     ports:
       - "${GATEWAY_HOST_PORT}:8100"
@@ -137,6 +160,7 @@ services:
     depends_on:
       - coder-commands-mcp
       - docker-mcp
+      - git-mcp
       - postgres-mcp
     networks: [codercommands]
     healthcheck:

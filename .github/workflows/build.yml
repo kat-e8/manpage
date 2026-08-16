@@ -22,6 +22,9 @@ jobs:
           export XLSX_HOST_PATH=/dev/null
           export DOCKER_MCP_SSH_KEY_PATH=/dev/null
           export DOCKER_MCP_SSH_KNOWN_HOSTS_PATH=/dev/null
+          export GIT_MCP_SSH_KEY_PATH=/dev/null
+          export GIT_MCP_SSH_KNOWN_HOSTS_PATH=/dev/null
+          export GIT_MCP_TARGETS='{}'
           export POSTGRES_USER=ci
           export POSTGRES_PASSWORD=ci
           export POSTGRES_DB=ci

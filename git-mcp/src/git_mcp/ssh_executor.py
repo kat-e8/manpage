@@ -16,6 +16,22 @@ from .quoting import posix_quote, windows_quote
 
 TIMEOUT_SECONDS = 30
 
+# Found live: git_diff against a real repo whose tracked files included a
+# multi-GB log file returned a 138MB response -- unbounded output from a
+# caller-supplied repo_path/ref is a real resource risk (MCP client, LLM
+# context), not a hypothetical one. Each stream is capped independently;
+# note this bounds the *returned* size, not subprocess memory during
+# communicate() itself, which still buffers the full output before this
+# function ever sees it.
+MAX_OUTPUT_BYTES = 200_000
+
+
+def _decode_capped(data: bytes) -> str:
+    if len(data) > MAX_OUTPUT_BYTES:
+        omitted = len(data) - MAX_OUTPUT_BYTES
+        return data[:MAX_OUTPUT_BYTES].decode(errors="replace") + f"\n... [truncated, {omitted} more bytes omitted]"
+    return data.decode(errors="replace")
+
 
 class UnknownTargetError(ValueError):
     pass
@@ -85,4 +101,4 @@ async def run_git(
         await proc.wait()
         raise GitCommandTimeout(f"git command on {target!r} timed out after {TIMEOUT_SECONDS}s")
 
-    return proc.returncode, stdout.decode(errors="replace"), stderr.decode(errors="replace")
+    return proc.returncode, _decode_capped(stdout), _decode_capped(stderr)

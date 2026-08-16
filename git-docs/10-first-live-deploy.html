@@ -1,0 +1,166 @@
+<title>The First Live Deploy</title>
+<style>
+  :root {
+    --paper: #F1F1F4; --surface: #FFFFFF; --surface-tint: #F6F6F9;
+    --ink: #191A23; --ink-soft: #5A5C6E; --line: #D8D9E2; --line-strong: #B9BBCA;
+    --accent: #4A5FD9;
+    --font-display: "Bahnschrift", "Segoe UI Semibold", "Arial Narrow", system-ui, sans-serif;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --font-mono: "Cascadia Code", "Cascadia Mono", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+      --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+      --accent: #7C8CF0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12131A; --surface: #191B25; --surface-tint: #1D202B;
+    --ink: #E7E8F0; --ink-soft: #A2A4B8; --line: #2B2E3D; --line-strong: #3B3F52;
+    --accent: #7C8CF0;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 17px; line-height: 1.65; margin: 0; padding: 0 20px 80px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  header.masthead { padding-top: 52px; max-width: 680px; display: flex; flex-direction: column; gap: 12px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 4.2vw, 2.7rem); letter-spacing: -0.01em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .deck { font-size: 1.1rem; color: var(--ink-soft); max-width: 64ch; }
+  .meta { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; display: flex; gap: 20px; flex-wrap: wrap; }
+  section { max-width: 680px; display: flex; flex-direction: column; gap: 14px; }
+  section.wide { max-width: 900px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; }
+  .section-num { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); min-width: 1.5em; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  p { margin: 0; max-width: 66ch; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-tint); border: 1px solid var(--line); border-radius: 3px; padding: 0.05em 0.35em; }
+  figure { margin: 4px 0 0; max-width: 900px; }
+  .diagram-frame { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; overflow-x: auto; }
+  .diagram-frame svg { display: block; width: 100%; height: auto; min-width: 500px; }
+  figcaption { font-size: 0.9rem; color: var(--ink-soft); margin-top: 8px; max-width: 66ch; }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; background: var(--surface-tint); padding: 12px 16px; max-width: 66ch; font-size: 0.85rem; font-family: var(--font-mono); }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; font-size: 0.88rem; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  td code { font-family: var(--font-mono); font-size: 0.85em; }
+  .table-wrap { overflow-x: auto; max-width: 900px; }
+  .status-yes { color: var(--accent); font-weight: 600; }
+  ul.punchlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 66ch; }
+  ul.punchlist li { position: relative; padding-left: 22px; }
+  ul.punchlist li::before { content: "▸"; position: absolute; left: 0; color: var(--accent); }
+  footer { max-width: 680px; border-top: 1px solid var(--line); padding-top: 16px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--ink-soft); }
+  svg text { fill: currentColor; font-family: var(--font-mono); }
+  svg .lbl-display { font-family: var(--font-display); font-weight: 700; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">git-docs · 10</div>
+    <h1>The First Live Deploy</h1>
+    <p class="deck">Tag <code>v0.1.0</code>, pushed once — and for the first time, something actually changed on clubuntu without anyone typing a command there.</p>
+    <div class="meta">
+      <span>tag: v0.1.0 → commit 9992ba4</span>
+      <span>2026-08-16</span>
+    </div>
+  </header>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">00</span><h2>What this actually tests</h2></div>
+    <p>Doc 9 proved <em>build</em> — code in, images in the registry. It never touched a running container. This is the other half: a tag resolving to a commit, that commit's already-built images getting pulled (not rebuilt), and the stack actually coming up on clubuntu. The whole reason every push builds and only a tag deploys, from the very first planning doc, was to make this moment cheap and safe rather than something to be nervous about.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">01</span><h2>What happened, in order</h2></div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 240" role="img" aria-label="git tag v0.1.0 resolves to commit 9992ba4. The deploy workflow sets IMAGE_TAG to that commit's short SHA, pulls the five already-built images for that tag from the registry -- no rebuild -- copies the compose file into the persistent deploy directory, and runs up -d, bringing all six containers online.">
+          <defs>
+            <marker id="fd-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)" />
+            </marker>
+          </defs>
+          <rect x="20" y="20" width="180" height="50" rx="6" fill="none" stroke="currentColor" />
+          <text x="110" y="42" text-anchor="middle" font-size="10.5">git tag v0.1.0</text>
+          <text x="110" y="58" text-anchor="middle" font-size="9" opacity="0.7">git push origin v0.1.0</text>
+
+          <line x1="200" y1="45" x2="270" y2="45" stroke="var(--accent)" marker-end="url(#fd-arrow)" />
+
+          <rect x="270" y="20" width="180" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="360" y="42" text-anchor="middle" font-size="10.5" fill="var(--accent)">resolves to</text>
+          <text x="360" y="58" text-anchor="middle" font-size="9.5" fill="var(--accent)" font-family="var(--font-mono)">9992ba4</text>
+
+          <line x1="450" y1="45" x2="520" y2="45" stroke="var(--accent)" marker-end="url(#fd-arrow)" />
+
+          <rect x="520" y="20" width="180" height="50" rx="6" fill="none" stroke="currentColor" />
+          <text x="610" y="42" text-anchor="middle" font-size="10.5">IMAGE_TAG=9992ba4</text>
+          <text x="610" y="58" text-anchor="middle" font-size="9" opacity="0.7">set for this job's env</text>
+
+          <line x1="360" y1="70" x2="360" y2="105" stroke="var(--accent)" marker-end="url(#fd-arrow)" />
+
+          <rect x="240" y="106" width="240" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="360" y="128" text-anchor="middle" font-size="10.5" fill="var(--accent)">compose pull</text>
+          <text x="360" y="144" text-anchor="middle" font-size="9" fill="var(--accent)">already built — no rebuild</text>
+
+          <line x1="360" y1="156" x2="360" y2="190" stroke="var(--accent)" marker-end="url(#fd-arrow)" />
+
+          <rect x="220" y="191" width="280" height="45" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="360" y="218" text-anchor="middle" font-size="10.5" fill="var(--accent)">compose up -d — 6 containers live</text>
+        </svg>
+      </div>
+      <figcaption>Every step here matches doc 4's plan exactly — this is that diagram, confirmed as real behavior rather than intent.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">02</span><h2>Verified</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Container</th><th>Image</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>generic-mcp-gateway</td><td><code>gateway:9992ba4</code></td><td class="status-yes">Up, healthy</td></tr>
+          <tr><td>coder-commands-mcp</td><td><code>coder-commands-mcp:9992ba4</code></td><td class="status-yes">Up</td></tr>
+          <tr><td>codercommands-docker-mcp</td><td><code>docker-mcp:9992ba4</code></td><td class="status-yes">Up</td></tr>
+          <tr><td>codercommands-postgres</td><td><code>postgres:17</code></td><td class="status-yes">Up, healthy</td></tr>
+          <tr><td>codercommands-postgres-mcp</td><td><code>postgres-mcp:9992ba4</code></td><td class="status-yes">Up, healthy</td></tr>
+          <tr><td>codercommands-sync</td><td><code>sync:9992ba4</code></td><td class="status-yes">Up</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">$ curl http://localhost:8100/healthz<br>{"status":"ok"}</div>
+    <p>Every service resolved to exactly the tag the deploy step set — none defaulted, none mismatched. The gateway, the one published port, answers for real.</p>
+  </section>
+
+  <section class="wide">
+    <div class="section-head"><span class="section-num">03</span><h2>The whole loop, closed</h2></div>
+    <figure>
+      <div class="diagram-frame">
+        <svg viewBox="0 0 900 160" role="img" aria-label="The full pipeline is now confirmed working end to end: a push to main built and pushed images automatically, and a tag push deployed them automatically, with a healthy running stack as the result -- nothing typed by hand on clubuntu at any point in either path.">
+          <defs>
+            <marker id="cl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 Z" fill="var(--accent)" />
+            </marker>
+          </defs>
+          <rect x="10" y="55" width="150" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="85" y="76" text-anchor="middle" font-size="10.5" fill="var(--accent)">git push</text>
+          <text x="85" y="92" text-anchor="middle" font-size="9" fill="var(--accent)">confirmed — doc 9</text>
+          <line x1="160" y1="80" x2="260" y2="80" stroke="var(--accent)" marker-end="url(#cl-arrow)" />
+          <rect x="260" y="55" width="150" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="335" y="80" text-anchor="middle" font-size="10.5" fill="var(--accent)">image built + pushed</text>
+          <line x1="410" y1="80" x2="510" y2="80" stroke="var(--accent)" marker-end="url(#cl-arrow)" />
+          <rect x="510" y="55" width="150" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="585" y="76" text-anchor="middle" font-size="10.5" fill="var(--accent)">git tag + push</text>
+          <text x="585" y="92" text-anchor="middle" font-size="9" fill="var(--accent)">confirmed — this doc</text>
+          <line x1="660" y1="80" x2="760" y2="80" stroke="var(--accent)" marker-end="url(#cl-arrow)" />
+          <rect x="760" y="55" width="130" height="50" rx="6" fill="none" stroke="var(--accent)" />
+          <text x="825" y="76" text-anchor="middle" font-size="10.5" fill="var(--accent)">healthy stack</text>
+          <text x="825" y="92" text-anchor="middle" font-size="9" fill="var(--accent)">running now</text>
+        </svg>
+      </div>
+      <figcaption>Same diagram as the very first plan (Deployment series, doc 6) — every box now backed by a real, verified run instead of intent.</figcaption>
+    </figure>
+    <p>Not yet exercised: a rollback tag. The mechanism is identical to this one — an older SHA instead of the newest — but hasn't actually been run once for real.</p>
+  </section>
+
+  <footer>git-docs — 10 · tag: v0.1.0 → 9992ba4</footer>
+</div>

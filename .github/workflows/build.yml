@@ -25,5 +25,6 @@ jobs:
           export POSTGRES_DB=ci
           export SYNC_POLL_SECONDS=7
           export GATEWAY_HOST_PORT=8100
+          export GATEWAY_API_KEY=ci
           docker compose build
           docker compose push
